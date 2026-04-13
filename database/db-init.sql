@@ -1,0 +1,32 @@
+﻿CREATE DATABASE IF NOT EXISTS finflow_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE finflow_db;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  phone VARCHAR(50) NOT NULL,
+  dob VARCHAR(20) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  account_name VARCHAR(255) NOT NULL,
+  account_number VARCHAR(20) NOT NULL,
+  sort_code VARCHAR(20) NOT NULL,
+  balance DECIMAL(12,2) NOT NULL DEFAULT 1000,
+  currency_code VARCHAR(10) NOT NULL DEFAULT 'INR',
+  currency_country VARCHAR(100) NOT NULL DEFAULT 'India',
+  currency_name VARCHAR(100) NOT NULL DEFAULT 'Indian Rupee',
+  currency_symbol VARCHAR(10) NOT NULL DEFAULT '₹',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  type ENUM('sent','received') NOT NULL DEFAULT 'sent',
+  details VARCHAR(255) NOT NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  currency_symbol VARCHAR(10) NOT NULL DEFAULT '₹',
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

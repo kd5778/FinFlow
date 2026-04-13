@@ -1,0 +1,167 @@
+/* menu component  */
+
+.menuContainer {
+  background-color: var(--background-color);
+  z-index: 5;
+  position: fixed;
+  margin: auto;
+  transform: translateX(300%);
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.visibleMenu {
+  top: 0;
+  left: 0;
+  transform: translateX(0%);
+  transition: transform 0s ease-out;
+}
+
+.backArrow {
+  height: 3.5rem;
+  width: 3.5rem;
+  border-radius: 5rem;
+  padding: 0;
+  padding-top: 0.15rem;
+  padding-left: 0.1rem;
+  cursor: pointer;
+}
+
+.backArrow:hover {
+  background-color: var(--hover-color);
+}
+
+.menuBody {
+  margin-top: 4rem;
+  margin-left: 2rem;
+  font-size: 1.5rem;
+}
+
+.menuOption h3 {
+  font-size: 1.4rem;
+  font-weight: 400;
+  margin-bottom: 0.75rem;
+}
+
+.menuOption {
+  display: flex;
+  color: rgb(94, 94, 94);
+  gap: 1.2rem;
+  margin: 1rem;
+  cursor: pointer;
+  align-items: center;
+}
+
+.menuOption:hover {
+  color: black;
+}
+
+.menuOption:hover h3 {
+  color: black;
+  font-weight: 600;
+}
+
+.menuSelect {
+  margin-top: 2rem;
+}
+
+@media screen and (min-width: 1100px) {
+  .menuContainer {
+    width: 15rem;
+    height: 100%;
+    z-index: 10;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0rem;
+    position: fixed;
+    flex-direction: column;
+    transform: none;
+    justify-content: center;
+  }
+
+  .homeOff {
+    display: none;
+  }
+
+  .visibleMenu {
+    top: 0;
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+
+  .menuBody > div > h2 {
+    display: none;
+  }
+
+  .backArrow {
+    display: none;
+  }
+
+  .menuBody {
+    margin-left: 0;
+    font-size: 1.2rem;
+  }
+
+  .menuOption {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    width: 100%;
+    margin-left: 0;
+    padding-left: 0;
+    margin: 0.6rem;
+  }
+
+  .menuOption div {
+    order: 2;
+  }
+
+  .menuOption h3 {
+    order: 1;
+  }
+
+  .menuSelect {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0;
+  }
+
+  .menuOptionBox {
+    margin-right: 1rem;
+    margin-left: 0;
+  }
+
+  .menuOptionBox a {
+    margin-left: 0;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  .menuBody {
+    padding-left: 0;
+    margin-left: 0;
+  }
+
+  .menuContainer {
+    padding-left: 0;
+    margin-left: 0;
+    margin-right: 1rem;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .menuContainer {
+    margin-right: 1.5rem;
+  }
+}

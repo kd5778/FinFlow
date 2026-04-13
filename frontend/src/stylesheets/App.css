@@ -1,0 +1,19 @@
+/* main App component styling  */
+
+.statusContainer {
+  height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.statusMessage {
+  font-size: 2rem;
+  text-align: center;
+}
+
+.statusLogo {
+  height: 10rem;
+  width: 10rem;
+}

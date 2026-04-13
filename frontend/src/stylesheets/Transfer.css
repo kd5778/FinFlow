@@ -1,0 +1,104 @@
+/* transfer page stylesheet  */
+
+.transferControls {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.transferControls > div {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+.transferControlButton {
+  width: 100%;
+}
+
+.payButton {
+  margin-top: 1rem;
+}
+
+.receiveControls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.bankTransferBox {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-size: 1.2rem;
+}
+
+.transferDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.clipboardCopy {
+  align-self: center;
+  font-weight: 400;
+  color: grey;
+  cursor: pointer;
+}
+
+.clipboardCopy:hover {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.hubContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.hubContainer h2 {
+  margin-bottom: 3rem;
+}
+
+.hubContainer > div {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  /* align-items: center; */
+  gap: 2rem;
+}
+
+.macroElement {
+  display: flex;
+  justify-content: space-between;
+}
+
+.macroElement p {
+  font-size: 1.25rem;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.debitExtras {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  /* border: red 0.1rem solid; */
+}
+
+.debitExtras div {
+  width: 100%;
+}

@@ -1,0 +1,40 @@
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { selectAccount } from "../store/mainSlice";
+import indiaIcon from "../assets/icons/indian.png";
+import Transactions from "./Transactions";
+
+// the account component
+
+const Account = () => {
+  const account = useSelector(selectAccount);
+
+  useEffect(() => {}, [account.balance]);
+
+  console.log(account.balance);
+
+  return (
+    <>
+      <div className="homeContainer mainAccountContainer">
+        <div className="accountHeader">
+          <div>
+            <h2>
+              {account.currencySymbol +
+                account.balance.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+            </h2>
+            <p>{account.currencyName}</p>
+          </div>
+
+          <img src={indiaIcon} alt="indiaIcon" className="currencyIcon" />
+        </div>
+
+        <Transactions currencySymbol={account.currencySymbol} />
+      </div>
+    </>
+  );
+};
+
+export default Account;

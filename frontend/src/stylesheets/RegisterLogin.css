@@ -1,0 +1,82 @@
+/* register and login components  */
+
+.registerNames {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+  gap: 0.5rem;
+  border-radius: 5rem;
+}
+
+.registerNames .inputContainer {
+  width: 50%;
+}
+
+.registerNumber {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.registerPostcode {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+}
+
+.registerAgreement {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  color: rgb(153, 153, 153);
+}
+
+.registerButton {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.errorMessage {
+  font-size: 1.1rem;
+  margin-left: 0.5rem;
+  color: var(--secondary-color);
+  font-weight: 500;
+  margin-bottom: 0.05rem;
+}
+
+.inputContainer {
+  display: block;
+}
+
+.altRoute {
+  width: 8rem;
+  margin: auto;
+}
+
+.altRouteText {
+  cursor: pointer;
+  font-size: 1.4rem;
+  margin-top: 0.75rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.altRouteText:hover {
+  text-decoration: underline;
+}
+
+.resetLink {
+  text-align: center;
+}

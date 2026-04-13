@@ -1,0 +1,173 @@
+/* home compoentns and others similar to it  */
+
+.mainHomeContainer {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  margin-bottom: 0;
+  /* padding-bottom: 20rem; */
+  margin-top: 6rem;
+}
+
+.homeHeader {
+  font-size: 1.1rem;
+  width: 100%;
+  max-width: 700px;
+  align-self: center;
+}
+
+.homeContainer {
+  background-color: #f5f5f5;
+  border-radius: var(--border-radius-2);
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 700px;
+  align-self: center;
+
+  overflow-y: auto;
+
+  /* Hide the scrollbar */
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: transparent transparent; /* For Firefox */
+}
+
+.mainAccountContainer {
+  min-height: 300px;
+  max-height: 550px;
+}
+
+.otherHomeContainer {
+  background-color: #f5f5f5;
+  border-radius: var(--border-radius-2);
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 700px;
+  align-self: center;
+  /* margin-bottom: 50rem; */
+  /* border: 0.1rem solid red; */
+
+  overflow-y: auto;
+
+  /* Hide the scrollbar */
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: transparent transparent; /* For Firefox */
+
+  /* Webkit browsers (Chrome, Safari) */
+  ::-webkit-scrollbar {
+    width: 6px; /* Adjust the width as needed */
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent; /* Make the track transparent */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: transparent; /* Make the thumb (actual scrollbar) transparent */
+  }
+}
+
+.currencyIcon {
+  width: 3rem;
+}
+
+.accountHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.transactionsMain {
+  padding-right: 0.5rem;
+  /* overflow-y: scroll; */
+}
+
+.transactionsMainHeader {
+  display: flex;
+  justify-content: space-between;
+}
+
+.homeIcons {
+  cursor: pointer;
+  color: var(--primary-color);
+  display: flex;
+  justify-content: center;
+}
+
+.homeIcons:hover {
+  cursor: pointer;
+  color: var(--tertiary-color);
+}
+
+.transactionElement {
+  margin-top: 0.5rem;
+  border-radius: var(--border-radius-3);
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.transactionElement:hover {
+  margin-top: 0.5rem;
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-3);
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.transactionExtra {
+  display: flex;
+  gap: 1rem;
+}
+
+.elementSection {
+  padding: 0.5rem;
+}
+
+.elementsCentre {
+  flex-grow: 1;
+}
+
+.hidden {
+  display: none;
+}
+
+.expandContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+form {
+  z-index: 0;
+}
+
+@media screen and (min-width: 1200px) {
+  .homeHeader {
+    max-width: 750px;
+  }
+
+  .homeContainer {
+    max-width: 750px;
+    min-height: 550px;
+  }
+}
+
+@media screen and (min-width: 1300px) {
+  .homeHeader {
+    max-width: 800px;
+  }
+
+  .homeContainer {
+    max-width: 800px;
+  }
+}
