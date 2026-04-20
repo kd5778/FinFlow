@@ -1,5 +1,65 @@
 # :moneybag: Stash - Fintech Web App :chart_with_upwards_trend:
 
+## :rocket: Getting Started
+
+To run this project locally, follow these steps:
+
+### Prerequisites
+- Node.js (v16 or higher)
+- MySQL Server
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd FinFlow
+   ```
+
+2. **Set up the database**
+   - Ensure MySQL is running on your system.
+   - Run the database setup script:
+     ```bash
+     node database/setup-db.js
+     ```
+   - This will create the `finflow_db` database and required tables.
+
+3. **Install backend dependencies**
+   ```bash
+   cd backend
+   npm install
+   ```
+
+4. **Install frontend dependencies**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+
+5. **Start the backend server**
+   ```bash
+   cd ../backend
+   npm run dev
+   ```
+   The backend will run on `http://localhost:4000`
+
+6. **Start the frontend**
+   ```bash
+   cd ../frontend
+   npm run dev
+   ```
+   The frontend will run on `http://localhost:5173`
+
+### Environment Variables
+- Backend: Copy `backend/.env` and adjust if needed (DB credentials, etc.)
+- Frontend: The API link is set to `http://localhost:4000/` in `frontend/.env`
+
+### Troubleshooting
+- If registration fails, ensure the backend is running and database is set up.
+- Check MySQL connection and credentials in `backend/.env`.
+- Make sure ports 4000 and 5173 are available.
+
 ## :computer: Tech Stack
 
 - **Frontend**: React.js (Functional React components)

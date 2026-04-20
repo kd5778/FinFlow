@@ -30,3 +30,32 @@
   max-width: 40rem;
   gap: 0.5rem;
 }
+
+.spin-logo {
+  animation: splashSpin 1.5s ease-in-out forwards;
+}
+
+@keyframes splashSpin {
+  0% {
+    transform: rotateY(0deg) scale(1.2);
+  }
+  80% {
+    transform: rotateY(720deg) scale(1.2);
+  }
+  100% {
+    transform: rotateY(720deg) scale(1);
+  }
+}
+
+.fade-in {
+  animation: fadeInContent 1s ease-in forwards;
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+@keyframes fadeInContent {
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
