@@ -5,6 +5,12 @@ import { Link, useNavigate } from "react-router-dom";
 import Button from "./Button";
 import Input from "./Input";
 import { validate } from "../validation";
+import {
+  IconButton,
+  InputAdornment
+} from "@mui/material";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useSelector, useDispatch } from "react-redux";
 import {
   setLoginInput,
@@ -20,7 +26,8 @@ import "../stylesheets/RegisterLogin.css";
 // main login component
 
 const Login = () => {
-  const [input, setInput] = useState();
+    const [input, setInput] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -75,16 +82,11 @@ const Login = () => {
 
     const token = localStorage.getItem("token");
 
-    console.log(token);
-
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_API_LINK}user/login`,
         { ...loginJson },
         {
-          headers: {
-            token: token,
-          },
           withCredentials: true, // Include credentials
         }
       );
@@ -153,10 +155,21 @@ const Login = () => {
           <div className="inputContainer">
             <Input
               label="password *"
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
+              endAdornment={
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
               onInput={onInput}
-            ></Input>
+            />
             <p className="errorMessage">{errors && errors.password}</p>
           </div>
         </div>

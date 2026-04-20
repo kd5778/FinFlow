@@ -5,22 +5,13 @@ import { toastTrigger } from "../helpers/helpers";
 
 const BankTransfer = () => {
   const account = useSelector(selectAccount);
-  const sortCode = account.sortCode.toString();
 
-  // format the sort code
-  const formattedSortCode =
-    sortCode[0] +
-    sortCode[1] +
-    "-" +
-    sortCode[2] +
-    sortCode[3] +
-    "-" +
-    sortCode[4] +
-    sortCode[5];
+  const ifscCodeStr = account.sortCode ? account.sortCode.toString() : '';
+  const formattedIFSCCode = ifscCodeStr.length >= 6 
+    ? ifscCodeStr.slice(0,2) + '-' + ifscCodeStr.slice(2,4) + '-' + ifscCodeStr.slice(4,6)
+    : ifscCodeStr;
 
-  let text = `\nBeneficiary: ${account.holderName}\n\nAccount: ${account.accountNumber}\n\nSort Code: ${formattedSortCode}`;
-
-  // check 
+  let text = `\nBeneficiary: ${account.holderName}\n\nAccount: ${account.accountNumber}\n\nIFSC Code: ${formattedIFSCCode}`;
 
   // copy to clipboard
   const handleCopy = async () => {
@@ -52,8 +43,8 @@ const BankTransfer = () => {
             <p>{account.accountNumber}</p>
           </div>
           <div>
-            <h3>Sort Code</h3>
-            <p>{formattedSortCode}</p>
+            <h3>IFSC Code</h3>
+            <p>{formattedIFSCCode}</p>
           </div>
         </div>
 

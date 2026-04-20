@@ -39,7 +39,7 @@ const Help = () => {
                 <MailOutlineRoundedIcon fontSize="large" />
               </div>
               <div>
-                <p>help@stash.com</p>
+                <p>help@finflow.com</p>
               </div>
             </div>
           </div>

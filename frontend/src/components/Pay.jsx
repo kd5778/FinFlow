@@ -213,7 +213,7 @@ const Pay = () => {
                 label="sort code *"
                 type="string"
                 name="sortCode"
-                placeholder="12-34-56"
+                placeholder="IFSC1234567"
                 onInput={onInput}
               ></Input>
               <p className="errorMessage">{errors && errors.sortCode}</p>

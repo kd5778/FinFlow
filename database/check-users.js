@@ -15,7 +15,7 @@ async function showUsers() {
     console.log("Connected to database...\n");
 
     // Get all users
-    const [users] = await connection.query("SELECT id, first_name, last_name, email, phone, dob, account_name, account_number, sort_code, balance, created_at FROM users ORDER BY created_at DESC");
+    const [users] = await connection.query("SELECT id, first_name, last_name, email, phone, dob, account_name, account_number, ifsc_code as sort_code, balance, created_at FROM users ORDER BY created_at DESC");
 
     if (users.length === 0) {
       console.log("No users registered yet.");
@@ -30,7 +30,7 @@ async function showUsers() {
         console.log(`   DOB: ${user.dob}`);
         console.log(`   Account Name: ${user.account_name}`);
         console.log(`   Account Number: ${user.account_number}`);
-        console.log(`   Sort Code: ${user.sort_code}`);
+        console.log(`   IFSC Code: ${user.sort_code}`);
         console.log(`   Balance: ₹${user.balance}`);
         console.log(`   Registered: ${user.created_at}`);
         console.log("-".repeat(40));

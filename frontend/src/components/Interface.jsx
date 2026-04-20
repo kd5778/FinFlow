@@ -15,6 +15,8 @@ import Profile from "./Profile";
 import Help from "./Help";
 import Settings from "./Settings";
 import AltTemplate from "./AltTemplate";
+import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
 import { useSelector } from "react-redux";
 import { selectScreenMode } from "../store/mainSlice";
 import RedirectToHome from "./RedirectToHome"
@@ -75,10 +77,14 @@ const Interface = () => {
       />
       <Route path="/login" element={<Template component={<Login />} />} />
 
+      <Route path="/reset" element={<Template component={<ForgotPassword />} />} />
+      <Route path="/reset/:token" element={<ResetPassword />} />
+
       <Route
         path="/main"
         element={<MainTemplate component={mainComponent} />}
       />
+
 
       <Route path="/help" element={<AltTemplate component={<Help />} />} />
 

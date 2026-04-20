@@ -4,7 +4,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Loading from "./Loading";
 import { toastTrigger } from "../helpers/helpers";
-import { setToast, setScreenMode, selectAccount } from "../store/mainSlice";
+import {
+  setToast,
+  setScreenMode,
+  setAccount,
+  selectAccount,
+} from "../store/mainSlice";
 import Name from "./Name";
 import Menu from "./Menu";
 
@@ -27,6 +32,7 @@ const AltTemplate = (props) => {
 
   const { component } = props;
   const dispatch = useDispatch();
+  const account = useSelector(selectAccount);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,6 +55,42 @@ const AltTemplate = (props) => {
           console.log("doesnt work");
           return;
         }
+
+        const {
+          account_name,
+          account_number,
+          balance,
+          currency_code,
+          currency_country,
+          currency_name,
+          currency_symbol,
+          ifsc_code,
+          first_name,
+          last_name,
+          dob,
+          number,
+        } = data.result;
+
+        dispatch(
+          setAccount({
+            ...account,
+            holderName: account_name,
+            name: account_name,
+            account_name,
+            accountNumber: account_number,
+            balance,
+            currencyCode: currency_code,
+            currencyName: currency_name,
+            currencyCountry: currency_country,
+            currencySymbol: currency_symbol,
+            sortCode: ifsc_code,
+            firstName: first_name,
+            lastName: last_name,
+            dob,
+            phoneNumber: number,
+          })
+        );
+
         console.log("alt template works fine");
         return;
       } catch (e) {

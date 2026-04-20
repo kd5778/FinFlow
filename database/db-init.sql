@@ -11,12 +11,14 @@ CREATE TABLE IF NOT EXISTS users (
   password VARCHAR(255) NOT NULL,
   account_name VARCHAR(255) NOT NULL,
   account_number VARCHAR(20) NOT NULL,
-  sort_code VARCHAR(20) NOT NULL,
+  ifsc_code VARCHAR(20) NOT NULL,
   balance DECIMAL(12,2) NOT NULL DEFAULT 1000,
   currency_code VARCHAR(10) NOT NULL DEFAULT 'INR',
   currency_country VARCHAR(100) NOT NULL DEFAULT 'India',
   currency_name VARCHAR(100) NOT NULL DEFAULT 'Indian Rupee',
   currency_symbol VARCHAR(10) NOT NULL DEFAULT '₹',
+  reset_token VARCHAR(255) NULL,
+  reset_token_expires_at DATETIME NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -13,23 +13,24 @@ const App = () => {
 
   const fetchData = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) return false;
       const { data } = await axios.get(
         `${import.meta.env.VITE_API_LINK}account/`,
         {
           headers: {
             token: token,
           },
-          withCredentials: true, // Include credentials
+          withCredentials: true,
         }
       );
-      if (data) {
-        return true;
-      }
+      return data.status === 1;
     } catch (e) {
       console.log(e);
       return false;
     }
   };
+
 
   if (fetchData()) {
     return (

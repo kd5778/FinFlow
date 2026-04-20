@@ -5,6 +5,7 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 dotenv.config();
 
@@ -25,13 +26,14 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "finflow",
+database: process.env.DB_NAME || "finflow_db",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
 });
 
 const jwtSecret = process.env.JWT_SECRET || "replace_with_a_strong_secret";
+const resetTokenExpiryMinutes = Number(process.env.RESET_TOKEN_EXPIRY_MINUTES || 15);
 
 const generateToken = (user) => {
   const payload = {
@@ -53,6 +55,94 @@ const authenticate = async (req, res, next) => {
     return next();
   } catch (error) {
     return res.status(401).json({ status: 0, reason: "Invalid token" });
+  }
+};
+
+const createMailTransporter = () => {
+  if (
+    !process.env.SMTP_HOST ||
+    !process.env.SMTP_PORT ||
+    !process.env.SMTP_USER ||
+    !process.env.SMTP_PASS
+  ) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+};
+
+const sendResetPasswordEmail = async (email, resetToken) => {
+  const frontendOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+  const resetLink = `${frontendOrigin}/reset/${resetToken}`;
+  const transporter = createMailTransporter();
+  const fromEmail =
+    process.env.MAIL_FROM || process.env.SMTP_USER || "no-reply@finflow.local";
+
+  if (!transporter) {
+    console.log(`Password reset link for ${email}: ${resetLink}`);
+    return { delivered: false, resetLink };
+  }
+
+  await transporter.sendMail({
+    from: fromEmail,
+    to: email,
+    subject: "FinFlow password reset",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>Reset your FinFlow password</h2>
+        <p>We received a request to reset your password.</p>
+        <p>
+          <a href="${resetLink}" style="display: inline-block; padding: 12px 20px; background: #007b60; color: #ffffff; text-decoration: none; border-radius: 6px;">
+            Reset password
+          </a>
+        </p>
+        <p>This link expires in ${resetTokenExpiryMinutes} minutes.</p>
+        <p>If you did not request this, you can ignore this email.</p>
+        <p>${resetLink}</p>
+      </div>
+    `,
+  });
+
+  return { delivered: true, resetLink };
+};
+
+const ensureResetColumns = async () => {
+  const connection = await pool.getConnection();
+
+  try {
+    const [columns] = await connection.query(
+      `
+        SELECT COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = 'users'
+          AND COLUMN_NAME IN ('reset_token', 'reset_token_expires_at')
+      `
+    );
+
+    const existingColumns = columns.map((column) => column.COLUMN_NAME);
+
+    if (!existingColumns.includes("reset_token")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN reset_token VARCHAR(255) NULL"
+      );
+    }
+
+    if (!existingColumns.includes("reset_token_expires_at")) {
+      await connection.query(
+        "ALTER TABLE users ADD COLUMN reset_token_expires_at DATETIME NULL"
+      );
+    }
+  } finally {
+    connection.release();
   }
 };
 
@@ -89,13 +179,13 @@ app.post("/user/register", async (req, res) => {
 
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
     const account_number = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-    const sort_code = `IFSC${Math.floor(100000 + Math.random() * 900000).toString()}`;
+const ifsc_code = `IFSC${Math.floor(100000 + Math.random() * 900000).toString()}`;
     const account_name = `${firstName} ${lastName}`;
     const balance = 1000;
 
     await connection.query(
       `INSERT INTO users
-      (first_name, last_name, phone, email, dob, password, account_name, account_number, sort_code, balance, currency_code, currency_country, currency_name, currency_symbol)
+(first_name, last_name, phone, email, dob, password, account_name, account_number, ifsc_code, balance, currency_code, currency_country, currency_name, currency_symbol)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         firstName,
@@ -106,7 +196,7 @@ app.post("/user/register", async (req, res) => {
         hashedPassword,
         account_name,
         account_number,
-        sort_code,
+        ifsc_code,
         balance,
         currency_code || "INR",
         currency_country || "India",
@@ -156,6 +246,115 @@ app.post("/user/logout", authenticate, async (req, res) => {
   return res.json({ status: 1, message: "Logged out" });
 });
 
+app.post("/user/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ status: 0, reason: "Email is required" });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query("SELECT id, email FROM users WHERE email = ?", [email]);
+
+    if (rows.length) {
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const hashedResetToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+      const expiresAt = new Date(Date.now() + resetTokenExpiryMinutes * 60 * 1000);
+
+      await connection.query(
+        "UPDATE users SET reset_token = ?, reset_token_expires_at = ? WHERE id = ?",
+        [hashedResetToken, expiresAt, rows[0].id]
+      );
+
+      await sendResetPasswordEmail(rows[0].email, resetToken);
+    }
+
+    connection.release();
+
+    return res.json({
+      status: 1,
+      message: "If an account exists for this email, a reset link has been sent",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
+app.get("/user/reset-password/:token", async (req, res) => {
+  const hashedResetToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      `SELECT id FROM users
+       WHERE reset_token = ?
+         AND reset_token_expires_at IS NOT NULL
+         AND reset_token_expires_at > NOW()`,
+      [hashedResetToken]
+    );
+    connection.release();
+
+    if (!rows.length) {
+      return res.status(400).json({ status: 0, reason: "Invalid or expired reset link" });
+    }
+
+    return res.json({ status: 1, message: "Reset link is valid" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
+app.post("/user/reset-password/:token", async (req, res) => {
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ status: 0, reason: "Password is required" });
+  }
+
+  const hashedResetToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      `SELECT id FROM users
+       WHERE reset_token = ?
+         AND reset_token_expires_at IS NOT NULL
+         AND reset_token_expires_at > NOW()`,
+      [hashedResetToken]
+    );
+
+    if (!rows.length) {
+      connection.release();
+      return res.status(400).json({ status: 0, reason: "Invalid or expired reset link" });
+    }
+
+    const hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
+
+    await connection.query(
+      `UPDATE users
+       SET password = ?, reset_token = NULL, reset_token_expires_at = NULL
+       WHERE id = ?`,
+      [hashedPassword, rows[0].id]
+    );
+
+    connection.release();
+
+    return res.json({ status: 1, message: "Password reset successful" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
 app.get("/account/", authenticate, async (req, res) => {
   try {
     const connection = await pool.getConnection();
@@ -175,7 +374,7 @@ app.get("/account/", authenticate, async (req, res) => {
       currency_country: user.currency_country,
       currency_name: user.currency_name,
       currency_symbol: user.currency_symbol,
-      sort_code: user.sort_code,
+      ifsc_code: user.ifsc_code,
       first_name: user.first_name,
       last_name: user.last_name,
       dob: user.dob,
@@ -183,6 +382,65 @@ app.get("/account/", authenticate, async (req, res) => {
     };
 
     return res.json({ status: 1, result });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
+app.put("/account/", authenticate, async (req, res) => {
+  const { firstName, lastName, dob, phoneNumber } = req.body;
+
+  if (!firstName || !lastName || !dob || !phoneNumber) {
+    return res.status(400).json({ status: 0, reason: "Missing required fields" });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+
+    const [existing] = await connection.query(
+      "SELECT id FROM users WHERE phone = ? AND id != ?",
+      [phoneNumber, req.user.userId]
+    );
+
+    if (existing.length > 0) {
+      connection.release();
+      return res.json({ status: 0, reason: "Phone number already registered" });
+    }
+
+    const account_name = `${firstName} ${lastName}`.trim();
+
+    await connection.query(
+      `UPDATE users
+       SET first_name = ?, last_name = ?, phone = ?, dob = ?, account_name = ?
+       WHERE id = ?`,
+      [firstName, lastName, phoneNumber, dob, account_name, req.user.userId]
+    );
+
+    const [rows] = await connection.query("SELECT * FROM users WHERE id = ?", [req.user.userId]);
+    connection.release();
+
+    if (!rows.length) {
+      return res.json({ status: 0, reason: "User not found" });
+    }
+
+    const user = rows[0];
+    const result = {
+      account_name: user.account_name,
+      account_number: user.account_number,
+      balance: user.balance,
+      currency_code: user.currency_code,
+      currency_country: user.currency_country,
+      currency_name: user.currency_name,
+      currency_symbol: user.currency_symbol,
+      ifsc_code: user.ifsc_code,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      dob: user.dob,
+      number: user.phone,
+    };
+
+    return res.json({ status: 1, message: "Profile updated", result });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: 0, reason: "Server error" });
@@ -273,6 +531,13 @@ app.post("/transaction/receive", authenticate, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`);
-});
+ensureResetColumns()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Backend listening on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Failed to prepare password reset columns:", error);
+    process.exit(1);
+  });

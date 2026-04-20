@@ -19,11 +19,19 @@ import {
 // importing stylesheets
 import "../stylesheets/RegisterLogin.css";
 import StatusUpdate from "./StatusUpdate";
+import {
+  IconButton,
+  InputAdornment
+} from "@mui/material";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 // register component
 
 const Register = () => {
-  const [input, setInput] = useState();
+  const [input, setInput] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -206,27 +214,49 @@ const Register = () => {
           <div className="inputContainer">
             <Input
               label="password *"
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
+              endAdornment={
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
               onInput={onInput}
-            ></Input>
+            />
             <p className="errorMessage">{errors && errors.password}</p>
           </div>
 
           <div className="inputContainer">
             <Input
               label="confirm password *"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               name="confirmPassword"
+              endAdornment={
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle confirm password visibility"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    edge="end"
+                  >
+                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              }
               onInput={onInput}
-            ></Input>
+            />
             <p className="errorMessage">{errors && errors.confirmPassword}</p>
           </div>
         </div>
 
         <div className="registerButton">
           <div className="registerAgreement">
-            <p>by clicking "register" I agree to stash's privacy policy</p>
+            <p>by clicking "register" I agree to FinFlow's privacy policy</p>
           </div>
           <Button text="register" type="submit" />
         </div>
