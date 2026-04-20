@@ -1,7 +1,6 @@
 ﻿const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
-// const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 const crypto = require("crypto");
@@ -26,7 +25,7 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
-database: process.env.DB_NAME || "finflow_db",
+  database: process.env.DB_NAME || "finflow_db",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -68,7 +67,7 @@ const createMailTransporter = () => {
     return null;
   }
 
-  return nodemailer.createTransport({
+  return nodemailer.createTransporter({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT),
     secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
@@ -179,14 +178,13 @@ app.post("/user/register", async (req, res) => {
 
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
     const account_number = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-const ifsc_code = `IFSC${Math.floor(100000 + Math.random() * 900000).toString()}`;
+    const ifsc_code = `IFSC${Math.floor(100000 + Math.random() * 900000).toString()}`;
     const account_name = `${firstName} ${lastName}`;
     const balance = 1000;
 
     await connection.query(
-      `INSERT INTO users
-(first_name, last_name, phone, email, dob, password, account_name, account_number, ifsc_code, balance, currency_code, currency_country, currency_name, currency_symbol)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO users (first_name, last_name, phone, email, dob, password, account_name, account_number, ifsc_code, balance, currency_code, currency_country, currency_name, currency_symbol)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         firstName,
         lastName,
@@ -541,3 +539,4 @@ ensureResetColumns()
     console.error("Failed to prepare password reset columns:", error);
     process.exit(1);
   });
+
