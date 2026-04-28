@@ -22,11 +22,26 @@ const Transactions = (props) => {
 
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to trigger re-fetch
+
+  // Add event listener for transaction updates
+  useEffect(() => {
+    const handleTransactionUpdate = () => {
+      setRefreshKey(prev => prev + 1);
+    };
+
+    window.addEventListener('transactionComplete', handleTransactionUpdate);
+    
+    return () => {
+      window.removeEventListener('transactionComplete', handleTransactionUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const { data } = await axios.get(
           `${import.meta.env.VITE_API_LINK}transaction/`,
@@ -59,11 +74,12 @@ const Transactions = (props) => {
           message: "something has gone wrong",
           progressColor: "#c90909",
         });
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [refreshKey]); // Re-fetch when refreshKey changes
 
   const onClick = () => {
     if (expanded[0]) {
@@ -87,6 +103,10 @@ const Transactions = (props) => {
   }
 
   if (isLoading) {
+    return <p style={{ textAlign: "center" }}>loading transactions...</p>;
+  }
+
+  if (transactions.length === 0) {
     return <p style={{ textAlign: "center" }}>no transactions</p>;
   }
 
@@ -117,7 +137,7 @@ const Transactions = (props) => {
               <TransactionElement
                 element={element}
                 currencySymbol={currencySymbol}
-                key={`${element.type}-${element.details}-${element.date}-${element.amount}`}
+                key={`${element.type}-${element.details}-${element.created}-${element.amount}`}
               />
             );
           })}

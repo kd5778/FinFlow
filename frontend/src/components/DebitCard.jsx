@@ -89,9 +89,12 @@ const DebitCard = () => {
           progressColor: "#007b60",
         });
 
-        dispatch(setBalance(account.balance + registerJson.amount));
+        dispatch(setBalance(account.balance + parseFloat(registerJson.amount)));
 
         dispatch(setDebitInput(registerJson));
+
+        // Dispatch custom event to trigger transaction list refresh
+        window.dispatchEvent(new Event('transactionComplete'));
 
         setLocalScreenMode(1);
 

@@ -265,15 +265,22 @@ app.post("/user/forgot-password", async (req, res) => {
         [hashedResetToken, expiresAt, rows[0].id]
       );
 
-      await sendResetPasswordEmail(rows[0].email, resetToken);
+      const result = await sendResetPasswordEmail(email, resetToken);
+      connection.release();
+
+      if (result.delivered) {
+        return res.json({ status: 1, message: "Reset email sent" });
+      } else {
+        return res.json({
+          status: 1,
+          message: "Email not configured. Check server logs for reset link.",
+          resetLink: result.resetLink,
+        });
+      }
     }
 
     connection.release();
-
-    return res.json({
-      status: 1,
-      message: "If an account exists for this email, a reset link has been sent",
-    });
+    return res.json({ status: 1, message: "If that email exists, a reset link has been sent" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ status: 0, reason: "Server error" });
@@ -460,38 +467,108 @@ app.get("/transaction/", authenticate, async (req, res) => {
   }
 });
 
+// FIXED: This endpoint now properly handles receiver account crediting
 app.post("/transaction/pay", authenticate, async (req, res) => {
-  const { amount, payeeName } = req.body;
+  const { amount, payeeName, accountNumber, sortCode } = req.body;
   const parsedAmount = Number(amount);
 
   if (!parsedAmount || parsedAmount <= 0) {
     return res.json({ status: 0, reason: "Invalid payment amount" });
   }
 
+  if (!accountNumber || !sortCode) {
+    return res.json({ status: 0, reason: "Missing receiver account details" });
+  }
+
+  let connection;
   try {
-    const connection = await pool.getConnection();
-    const [users] = await connection.query("SELECT balance, currency_symbol FROM users WHERE id = ?", [req.user.userId]);
-    if (!users.length) {
+    connection = await pool.getConnection();
+    
+    // Start a transaction to ensure atomicity
+    await connection.beginTransaction();
+
+    // Get sender details
+    const [senderRows] = await connection.query(
+      "SELECT id, balance, currency_symbol, account_name FROM users WHERE id = ?", 
+      [req.user.userId]
+    );
+    
+    if (!senderRows.length) {
+      await connection.rollback();
       connection.release();
-      return res.json({ status: 0, reason: "User not found" });
+      return res.json({ status: 0, reason: "Sender not found" });
     }
 
-    const user = users[0];
-    if (user.balance < parsedAmount) {
+    const sender = senderRows[0];
+    
+    // Check if sender has sufficient balance
+    if (sender.balance < parsedAmount) {
+      await connection.rollback();
       connection.release();
       return res.json({ status: 0, reason: "Insufficient balance" });
     }
 
-    const newBalance = user.balance - parsedAmount;
-    await connection.query("UPDATE users SET balance = ? WHERE id = ?", [newBalance, req.user.userId]);
+    // Find receiver by account number and IFSC code
+    const [receiverRows] = await connection.query(
+      "SELECT id, balance, currency_symbol, account_name FROM users WHERE account_number = ? AND ifsc_code = ?",
+      [accountNumber, sortCode]
+    );
+
+    if (!receiverRows.length) {
+      await connection.rollback();
+      connection.release();
+      return res.json({ status: 0, reason: "Receiver account not found" });
+    }
+
+    const receiver = receiverRows[0];
+
+    // Check if sender is trying to send to themselves
+    if (sender.id === receiver.id) {
+      await connection.rollback();
+      connection.release();
+      return res.json({ status: 0, reason: "Cannot send money to yourself" });
+    }
+
+    // Deduct from sender (Explicitly converting for safety)
+    const newSenderBalance = Number(sender.balance) - parsedAmount;
+    await connection.query(
+      "UPDATE users SET balance = ? WHERE id = ?", 
+      [newSenderBalance, sender.id]
+    );
+
+    // Credit to receiver (Fixing the concatenation bug)
+    const newReceiverBalance = Number(receiver.balance) + parsedAmount;
+    await connection.query(
+      "UPDATE users SET balance = ? WHERE id = ?", 
+      [newReceiverBalance, receiver.id]
+    );
+
+    // Record transaction for sender
     await connection.query(
       "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
-      [req.user.userId, "sent", payeeName || "payment", parsedAmount, user.currency_symbol]
+      [sender.id, "sent", payeeName || receiver.account_name, parsedAmount, sender.currency_symbol]
     );
+
+    // Record transaction for receiver
+    await connection.query(
+      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
+      [receiver.id, "received", sender.account_name, parsedAmount, receiver.currency_symbol]
+    );
+
+    // Commit the transaction
+    await connection.commit();
     connection.release();
 
-    return res.json({ status: 1, message: "Payment successful" });
+    return res.json({ 
+      status: 1, 
+      message: "Payment successful",
+      newBalance: newSenderBalance
+    });
   } catch (error) {
+    if (connection) {
+      await connection.rollback();
+      connection.release();
+    }
     console.error(error);
     return res.status(500).json({ status: 0, reason: "Server error" });
   }
@@ -514,7 +591,7 @@ app.post("/transaction/receive", authenticate, async (req, res) => {
     }
 
     const user = users[0];
-    const newBalance = user.balance + parsedAmount;
+    const newBalance = Number(user.balance) + parsedAmount;
     await connection.query("UPDATE users SET balance = ? WHERE id = ?", [newBalance, req.user.userId]);
     await connection.query(
       "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
@@ -539,4 +616,3 @@ ensureResetColumns()
     console.error("Failed to prepare password reset columns:", error);
     process.exit(1);
   });
-

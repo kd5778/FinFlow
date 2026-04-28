@@ -156,15 +156,15 @@ const Pay = () => {
         });
 
         dispatch(setPayInput(registerJson));
-        dispatch(setBalance(accountBalance - amount));
-        dispatch(
-          setTransactions({
-            type: "sent",
-            details: transactionDetails,
-            date: transactionDate,
-            amount: formattedPaymentAmount,
-          })
-        );
+        
+        // Update balance from server response if available, otherwise calculate locally
+        const newBalance = data.newBalance !== undefined 
+          ? data.newBalance 
+          : accountBalance - parseFloat(amount);
+        dispatch(setBalance(newBalance));
+
+        // Dispatch custom event to trigger transaction list refresh
+        window.dispatchEvent(new Event('transactionComplete'));
 
         setLocalScreenMode(1);
 
@@ -177,7 +177,7 @@ const Pay = () => {
         console.log(data.reason);
 
         toastTrigger({
-          message: "incorrect data",
+          message: data.reason || "incorrect data",
           progressColor: "#c90909",
         });
         return;
