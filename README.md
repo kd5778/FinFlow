@@ -1,125 +1,160 @@
-# :moneybag: Stash - Fintech Web App :chart_with_upwards_trend:
+# 💸 FinFlow - Fintech Web App 📈
 
-## :rocket: Getting Started
+A full-stack fintech web application for secure money management, P2P transfers, and transaction tracking.
 
-To run this project locally, follow these steps:
+---
+
+## 🚀 Features
+
+- 💸 P2P money transfer with safe transaction handling  
+- 📊 Real-time transaction history dashboard  
+- 🔐 JWT-based authentication  
+- 📧 Password reset via email (Nodemailer)  
+- 💱 Multi-currency support  
+- 📱 Fully responsive design  
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** React.js (Vite)  
+- **Backend:** Node.js, Express.js  
+- **Database:** MySQL (`mysql2`)  
+- **State Management:** Redux Toolkit  
+- **Authentication:** JWT  
+- **Email Service:** Nodemailer  
+
+---
+
+## 📂 Project Structure
+
+    FinFlow/
+    │
+    ├── backend/
+    ├── frontend/
+    ├── database/
+    └── README.md
+
+---
+
+## ⚙️ Getting Started
 
 ### Prerequisites
 - Node.js (v16 or higher)
 - MySQL Server
 - npm or yarn
 
-### Installation
+---
+
+## 📦 Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd FinFlow
-   ```
+    
+        git clone <repository-url>
+        cd FinFlow
 
 2. **Set up the database**
-   - Ensure MySQL is running on your system.
-   - Run the database setup script:
-     ```bash
-     node database/setup-db.js
-     ```
-   - This will create the `finflow_db` database and required tables.
+    
+    - Ensure MySQL is running on your system.
+    - Run the database setup script:
+        
+            node database/setup-db.js
 
 3. **Install backend dependencies**
-   ```bash
-   cd backend
-   npm install
-   ```
+    
+        cd backend
+        npm install
 
 4. **Install frontend dependencies**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
+    
+        cd ../frontend
+        npm install
 
-5. **Start the backend server**
-   ```bash
-   cd ../backend
-   npm run dev
-   ```
-   The backend will run on `http://localhost:4000`
+---
 
-6. **Start the frontend**
-   ```bash
-   cd ../frontend
-   npm run dev
-   ```
-   The frontend will run on `http://localhost:5173`
+## ▶️ Running the Application
 
-### Environment Variables
-- Backend: Copy `backend/.env` and adjust if needed (DB credentials, etc.)
-- Frontend: The API link is set to `http://localhost:4000/` in `frontend/.env`
+1. **Start backend**
+    
+        cd backend
+        npm start
 
-### Troubleshooting
-- If registration fails, ensure the backend is running and database is set up.
-- Check MySQL connection and credentials in `backend/.env`.
-- Make sure ports 4000 and 5173 are available.
+   Backend runs on: http://localhost:4000
 
-## :computer: Tech Stack
+2. **Start frontend**
+    
+        cd frontend
+        npm run dev
 
-- **Frontend**: React.js (Functional React components)
-- **Backend**: Node.js and Express.js using TypeScript
-- **State Management**: Redux Toolkit
-- **Database**: MySQL relational database (hosted separately)
-- **UI Library**: Material-UI
-- **Responsiveness**: Fully Responsive Design
-- **UX/UI Design**: Collaborated with Tahmina Mustafayeva, a gifted UX/UI designer
-- **Logo Design**: Created by Myself
-- **Form Validation**: Joi Validator (both front and backend)
-- **Authentication**: Token-based
-- **Security**: Implemented security measures to safeguard user data
-- **Integration**: Played with third-party open banking integration using TrueLayer (in development phase)
-- **Local Storage**: Used for persistence and enhanced functionality
-- **Version Control**: Git
-- **CSS**: Custom Styling with some Material-UI components integrated
-- **Testing**: Eslint, Vitest, and Jest
-- **Deployment**: Hosted in the cloud on Render
+   Frontend runs on: http://localhost:5173
 
-## :book: About Stash
+---
 
-Stash is a user-friendly fintech web app designed to assist users in managing their finances. Whether it's setting up an INR account, making transfers, or editing profile details, Stash provides a seamless experience. While the app presently serves as an MVP version, there's scope for significant future expansions.
+## 🔐 Environment Variables
 
-## :gear: Core Features
+### Backend (`backend/.env`)
 
-- Transactions: Enables users to pay and receive money seamlessly.
-- Hub Section: Delivers insights on Indian macroeconomic data, including interest rates and inflation.
-- User Management: Features like registration, INR account setup, profile editing, and more.
-- Responsive Design: Guarantees flawless access across various devices.
-- Security: Robust form validation and implemented protective measures against potential security threats.
-  
-## :bust_in_silhouette: Creator's Note
+    PORT=4000
+    FRONTEND_ORIGIN=http://localhost:5173
+    JWT_SECRET=your_super_secret_jwt_key
 
-I, Kanan Garayev, envisioned and brought Stash to life during my personal time. Working both on the design and development, I also collaborated with Tahmina Mustafayeva, an expert UX/UI designer, which added a touch of professionalism to the design.
+    DB_HOST=localhost
+    DB_PORT=3306
+    DB_USER=root
+    DB_PASSWORD=your_password
+    DB_NAME=finflow_db
 
-## :art: Design & Responsiveness
+    SMTP_HOST=smtp.yourprovider.com
+    SMTP_PORT=587
+    SMTP_USER=your_email@example.com
+    SMTP_PASS=your_email_password
+    SMTP_SECURE=false
 
-Stash's aesthetic appeal is a testament to detailed craftsmanship. Primarily styled using custom CSS, it integrates certain Material-UI components for specific purposes. Responsiveness isn't an afterthought – it's a core feature ensuring the app's fluidity across different devices.
+### Frontend (`frontend/.env`)
 
-## :link: Experience Stash
+    VITE_API_LINK=http://localhost:4000/
 
-### :star: [Stash Web App](https://stash-uwns.onrender.com/) :star:
+---
 
-#### :sparkles: Highlights:
+## 🔄 Application Flow
 
-- Full-scale functional fintech application
-- Efficient state management using Redux Toolkit
-- Custom logo and CSS stylings for unique aesthetics
-- Advanced form validation processes using Joi Validator
-- Local storage integration for superior user experiences
-- The "hub" section offering insights into macroeconomic data.
-- Version control established via Git
-  
-#### :zap: Future Scope:
+1. User registers or logs in  
+2. JWT token is generated  
+3. User performs transactions  
+4. Backend ensures safe database operations  
+5. Transactions are stored and displayed  
 
--Enhancements: Improve the "hub" section with financial news, goal setting, financial planning features.
-- Stocks & Crypto: Introduce tools for buying/selling shares and cryptocurrencies.
-- Integrations: Implementation of multi-factor authentication, OAuth, third-party integrations, and WebSocket for live chat support.
-- Code Base: Consider using TypeScript for enhanced type safety.
-- Functionalities: Additional features like autocomplete, transaction filtering, and analytics visualisation.
+---
 
-Stash is a testament to the dedication and skill of its creator, Kanan Garayev. Serving currently as an MVP, it already showcases robust functionalities and a promise of more to come. 
+## 🛡️ Security Features
+
+- Password hashing  
+- JWT authentication  
+- Token expiration handling  
+- Secure transaction logic  
+- Email-based password reset  
+
+---
+
+## 🐛 Troubleshooting
+
+- Registration fails → Check backend & DB setup  
+- DB connection error → Verify `.env` credentials  
+- Email not sending → Check SMTP config  
+- Port issues → Ensure ports 4000 & 5173 are free  
+
+---
+
+## ✨ Future Scope
+
+- Analytics dashboard (charts)  
+- Open banking integration (Plaid / TrueLayer)  
+- Two-Factor Authentication (2FA)  
+- OAuth login (Google, GitHub)  
+- Real-time notifications (WebSockets)  
+
+---
+
+## 📜 License
+
+MIT License
