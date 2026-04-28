@@ -153,12 +153,12 @@ export const pay = {
 
   accountNumber: joi
     .string()
-    .pattern(/^\d{8}$/)
+    .pattern(/^\d{10}$/)
     .required()
-    .length(8)
+    .length(10)
     .messages({
       "string.empty": "bank account number is required",
-      "string.pattern.base": "bank account number must be 8 digits",
+      "string.pattern.base": "bank account number must be 10 digits",
     }),
 
   amount: joi
