@@ -2,19 +2,11 @@ import React, { useState, useEffect } from "react";
 import TransactionElement from "./TransactionElement";
 import axios from "axios";
 import { toastTrigger } from "../helpers/helpers";
-import Loading from "./Loading";
-
-import { useSelector, useDispatch } from "react-redux";
-import { selectAccount, selectTransactions } from "../store/mainSlice";
 
 import ExpandMoreOutlinedIcon from "@mui/icons-material/ExpandMoreOutlined";
 import ExpandLessOutlinedIcon from "@mui/icons-material/ExpandLessOutlined";
 
-// summary of transactions
-
-const Transactions = (props) => {
-  const { currencySymbol } = props;
-
+const Transactions = ({ currencySymbol }) => {
   const [expanded, setExpanded] = useState([
     false,
     <ExpandMoreOutlinedIcon fontSize="large" />,
@@ -22,85 +14,73 @@ const Transactions = (props) => {
 
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to trigger re-fetch
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Add event listener for transaction updates
   useEffect(() => {
     const handleTransactionUpdate = () => {
-      setRefreshKey(prev => prev + 1);
+      setRefreshKey((prev) => prev + 1);
     };
 
-    window.addEventListener('transactionComplete', handleTransactionUpdate);
-    
+    window.addEventListener("transactionComplete", handleTransactionUpdate);
+
     return () => {
-      window.removeEventListener('transactionComplete', handleTransactionUpdate);
+      window.removeEventListener("transactionComplete", handleTransactionUpdate);
     };
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    const fetchData = async () => {
+    const fetchTransactions = async () => {
       setIsLoading(true);
-      try {
-        const { data } = await axios.get(
-          `${import.meta.env.VITE_API_LINK}transaction/`,
-          {
-            headers: {
-              token: token,
-            },
-            withCredentials: true, // Include credentials
-          }
-        );
+      const token = localStorage.getItem("token");
 
-        console.log(data);
-
-        if (data.status === 0) {
-          console.log("Error:", data.reason);
-          // navigate("/login");
-          return;
-        }
-
-        setTransactions(data.results);
-
+      // Guard clause: Don't fetch if there is no token yet
+      if (!token) {
         setIsLoading(false);
-
-        console.log("transactions work fine");
         return;
-      } catch (error) {
-        console.log(error);
+      }
 
+      try {
+        // Safely construct the URL to prevent "localhost:4000transaction/" bugs
+        const baseURL = import.meta.env.VITE_API_LINK.replace(/\/$/, "");
+        
+        const { data } = await axios.get(`${baseURL}/transaction/`, {
+          headers: {
+            token: token,
+          },
+          withCredentials: true,
+        });
+
+        if (data.status === 1) {
+          setTransactions(data.results || []);
+        } else {
+          console.error("Backend Error:", data.reason);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error.response?.data || error.message);
         toastTrigger({
-          message: "something has gone wrong",
+          message: "Failed to load transactions",
           progressColor: "#c90909",
         });
+      } finally {
+        // Always ensure loading stops, even on an error
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, [refreshKey]); // Re-fetch when refreshKey changes
+    fetchTransactions();
+  }, [refreshKey]);
 
-  const onClick = () => {
-    if (expanded[0]) {
-      setExpanded([false, <ExpandMoreOutlinedIcon fontSize="large" />]);
-    } else {
-      setExpanded([true, <ExpandLessOutlinedIcon fontSize="large" />]);
-    }
+  const toggleExpand = () => {
+    setExpanded([
+      !expanded[0],
+      expanded[0] ? (
+        <ExpandMoreOutlinedIcon fontSize="large" />
+      ) : (
+        <ExpandLessOutlinedIcon fontSize="large" />
+      ),
+    ]);
   };
-
-  // const transactions = useSelector(selectTransactions);
-
-  let recentTransactions;
-  let remainingTransactions;
-
-  if (transactions.length >= 4) {
-    recentTransactions = transactions.slice(0, 4);
-    remainingTransactions = transactions.slice(4);
-  } else {
-    recentTransactions = [...transactions];
-    remainingTransactions = [];
-  }
 
   if (isLoading) {
     return <p style={{ textAlign: "center" }}>loading transactions...</p>;
@@ -110,46 +90,46 @@ const Transactions = (props) => {
     return <p style={{ textAlign: "center" }}>no transactions</p>;
   }
 
+  // Splitting the transactions safely
+  const recentTransactions = transactions.slice(0, 4);
+  const remainingTransactions = transactions.slice(4);
+
   return (
-    <>
-      <div className="transactionsMain">
-        <div className="transactionsMainHeader">
-          <h2>Transactions</h2>
-        </div>
+    <div className="transactionsMain">
+      <div className="transactionsMainHeader">
+        <h2>Transactions</h2>
+      </div>
 
-        {recentTransactions.map((element) => {
-          return (
-            <TransactionElement
-              element={element}
-              currencySymbol={currencySymbol}
-              key={`${element.type}-${element.details}-${element.created}-${element.amount}`}
-            />
-          );
-        })}
+      {recentTransactions.map((element, index) => (
+        <TransactionElement
+          element={element}
+          currencySymbol={currencySymbol}
+          // Utilizing a safer, guaranteed unique key
+          key={`recent-${index}-${element.created}`}
+        />
+      ))}
 
-        <div
-          className={`expandedTransactions ${
-            expanded[0] ? "visible" : "hidden"
-          }`}
-        >
-          {remainingTransactions.map((element) => {
-            return (
-              <TransactionElement
-                element={element}
-                currencySymbol={currencySymbol}
-                key={`${element.type}-${element.details}-${element.created}-${element.amount}`}
-              />
-            );
-          })}
-        </div>
+      <div
+        className={`expandedTransactions ${expanded[0] ? "visible" : "hidden"}`}
+      >
+        {remainingTransactions.map((element, index) => (
+          <TransactionElement
+            element={element}
+            currencySymbol={currencySymbol}
+            key={`remaining-${index}-${element.created}`}
+          />
+        ))}
+      </div>
 
+      {/* Only show the expand button if there are actually remaining transactions to show */}
+      {remainingTransactions.length > 0 && (
         <div className="expandContainer">
-          <div className="homeIcons" onClick={onClick}>
+          <div className="homeIcons" onClick={toggleExpand}>
             {expanded[1]}
           </div>
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 };
 

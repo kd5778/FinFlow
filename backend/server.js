@@ -456,7 +456,7 @@ app.get("/transaction/", authenticate, async (req, res) => {
   try {
     const connection = await pool.getConnection();
     const [rows] = await connection.query(
-      "SELECT type, details, amount, created_at as created FROM transactions WHERE user_id = ? ORDER BY created_at DESC",
+      "SELECT type, details, amount, created FROM transactions WHERE user_id = ? ORDER BY created DESC",
       [req.user.userId]
     );
     connection.release();
