@@ -69,6 +69,19 @@ const TransactionElement = ({ element, currencySymbol = "$" }) => {
           <div className="transactionExtra">
             <p style={{ textTransform: "capitalize" }}>{element.type || "transfer"}</p>
             <p>{formatDate(element.created)}</p>
+            {element.category && element.category !== "Other" && (
+              <span style={{
+                display: "inline-block",
+                padding: "0.15rem 0.6rem",
+                borderRadius: "1rem",
+                background: "#007b6012",
+                color: "#007b60",
+                fontSize: "1rem",
+                fontWeight: "600",
+              }}>
+                {element.category}
+              </span>
+            )}
           </div>
         </div>
       </div>

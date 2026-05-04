@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { selectAccount } from "../store/mainSlice";
 import { refreshData } from "../controllers/data";
 import { toastTrigger } from "../helpers/helpers";
-import.meta.env.VITE_API_LINK
+import Analytics from "./Analytics";
 
 
 import "../stylesheets/Home.css";
@@ -37,10 +37,10 @@ const HubContent = () => {
         "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana,ripple&vs_currencies=inr&include_24hr_change=true"
       );
       const formatted = [
-        { symbol: "BTC", name: "Bitcoin",  price: data.bitcoin?.inr,  change: data.bitcoin?.inr_24h_change },
+        { symbol: "BTC", name: "Bitcoin", price: data.bitcoin?.inr, change: data.bitcoin?.inr_24h_change },
         { symbol: "ETH", name: "Ethereum", price: data.ethereum?.inr, change: data.ethereum?.inr_24h_change },
-        { symbol: "SOL", name: "Solana",   price: data.solana?.inr,   change: data.solana?.inr_24h_change },
-        { symbol: "XRP", name: "Ripple",   price: data.ripple?.inr,   change: data.ripple?.inr_24h_change },
+        { symbol: "SOL", name: "Solana", price: data.solana?.inr, change: data.solana?.inr_24h_change },
+        { symbol: "XRP", name: "Ripple", price: data.ripple?.inr, change: data.ripple?.inr_24h_change },
         { symbol: "DOGE", name: "Dogecoin", price: data.dogecoin?.inr, change: data.dogecoin?.inr_24h_change },
       ].filter(c => c.price);
       setCryptoData(formatted);
@@ -266,7 +266,7 @@ const HubContent = () => {
 
       {/* Tab buttons */}
       <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
-        {["market", "portfolio", "macro"].map((tab) => (
+        {["market", "portfolio", "macro", "analytics"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -277,8 +277,8 @@ const HubContent = () => {
               cursor: "pointer",
               fontWeight: "600",
               fontSize: "1.4rem",
-              background: activeTab === tab ? "var(--primary-color, #007b60)" : "#f0f0f0",
-              color: activeTab === tab ? "#fff" : "#333",
+              background: activeTab === tab ? "var(--primary-color, #007b60)" : "var(--card-bg-alt, #f0f0f0)",
+              color: activeTab === tab ? "var(--background-color)" : "var(--text-color, var(--text-color))",
               transition: "all 0.2s",
             }}
           >
@@ -297,17 +297,17 @@ const HubContent = () => {
               {/* Crypto */}
               <h3 style={{ marginBottom: "1rem", fontSize: "1.6rem" }}>🪙 Crypto</h3>
               {cryptoData.length === 0 && (
-                <p style={{ color: "gray", marginBottom: "2rem" }}>unable to load crypto prices</p>
+                <p style={{ color: "var(--sub-color)", marginBottom: "2rem" }}>unable to load crypto prices</p>
               )}
               {cryptoData.map((coin) => (
                 <div key={coin.symbol} style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "1.2rem", borderRadius: "1rem", background: "#f9f9f9",
+                  padding: "1.2rem", borderRadius: "1rem", background: "var(--card-bg-alt)",
                   marginBottom: "0.8rem"
                 }}>
                   <div>
                     <p style={{ fontWeight: "700", fontSize: "1.4rem" }}>{coin.name}</p>
-                    <p style={{ color: "gray", fontSize: "1.2rem" }}>{coin.symbol}</p>
+                    <p style={{ color: "var(--sub-color)", fontSize: "1.2rem" }}>{coin.symbol}</p>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <p style={{ fontWeight: "700", fontSize: "1.4rem" }}>{formatPrice(coin.price)}</p>
@@ -333,17 +333,17 @@ const HubContent = () => {
               {/* Stocks */}
               <h3 style={{ margin: "2rem 0 1rem", fontSize: "1.6rem" }}>📈 Indian Stocks (NSE)</h3>
               {stockData.length === 0 && (
-                <p style={{ color: "gray" }}>unable to load stock prices</p>
+                <p style={{ color: "var(--sub-color)" }}>unable to load stock prices</p>
               )}
               {stockData.map((stock) => (
                 <div key={stock.symbol} style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "1.2rem", borderRadius: "1rem", background: "#f9f9f9",
+                  padding: "1.2rem", borderRadius: "1rem", background: "var(--card-bg-alt)",
                   marginBottom: "0.8rem"
                 }}>
                   <div>
                     <p style={{ fontWeight: "700", fontSize: "1.4rem" }}>{stock.symbol}</p>
-                    <p style={{ color: "gray", fontSize: "1.2rem" }}>{stock.name}</p>
+                    <p style={{ color: "var(--sub-color)", fontSize: "1.2rem" }}>{stock.name}</p>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <p style={{ fontWeight: "700", fontSize: "1.4rem" }}>{formatPrice(stock.price)}</p>
@@ -378,26 +378,26 @@ const HubContent = () => {
           {isLoadingPortfolio ? (
             <Loading />
           ) : portfolio.length === 0 ? (
-            <p style={{ color: "gray", textAlign: "center", padding: "2rem" }}>
+            <p style={{ color: "var(--sub-color)", textAlign: "center", padding: "2rem" }}>
               no assets yet — buy something from the market tab
             </p>
           ) : (
             <>
               {/* Summary */}
               <div style={{
-                background: "#f0f9f6", borderRadius: "1rem", padding: "1.5rem",
+                background: "var(--card-bg)", borderRadius: "1rem", padding: "1.5rem",
                 marginBottom: "2rem", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem"
               }}>
                 <div>
-                  <p style={{ color: "gray", fontSize: "1.2rem" }}>Total Invested</p>
+                  <p style={{ color: "var(--sub-color)", fontSize: "1.2rem" }}>Total Invested</p>
                   <p style={{ fontWeight: "700", fontSize: "1.6rem" }}>{formatPrice(getPortfolioCost())}</p>
                 </div>
                 <div>
-                  <p style={{ color: "gray", fontSize: "1.2rem" }}>Current Value</p>
+                  <p style={{ color: "var(--sub-color)", fontSize: "1.2rem" }}>Current Value</p>
                   <p style={{ fontWeight: "700", fontSize: "1.6rem" }}>{formatPrice(getPortfolioValue())}</p>
                 </div>
                 <div>
-                  <p style={{ color: "gray", fontSize: "1.2rem" }}>Profit / Loss</p>
+                  <p style={{ color: "var(--sub-color)", fontSize: "1.2rem" }}>Profit / Loss</p>
                   <p style={{
                     fontWeight: "700", fontSize: "1.6rem",
                     color: getPortfolioValue() - getPortfolioCost() >= 0 ? "#007b60" : "#c90909"
@@ -417,12 +417,12 @@ const HubContent = () => {
 
                 return (
                   <div key={item.id} style={{
-                    padding: "1.2rem", borderRadius: "1rem", background: "#f9f9f9",
+                    padding: "1.2rem", borderRadius: "1rem", background: "var(--card-bg-alt)",
                     marginBottom: "0.8rem", display: "flex", justifyContent: "space-between", alignItems: "center"
                   }}>
                     <div>
                       <p style={{ fontWeight: "700", fontSize: "1.4rem" }}>{item.asset_name}</p>
-                      <p style={{ color: "gray", fontSize: "1.2rem" }}>
+                      <p style={{ color: "var(--sub-color)", fontSize: "1.2rem" }}>
                         {formatUnits(item.units)} units · bought @ {formatPrice(item.buy_price)}
                       </p>
                     </div>
@@ -455,7 +455,7 @@ const HubContent = () => {
         <div>
           <h3 style={{ marginBottom: "1rem", fontSize: "1.6rem" }}>🇮🇳 Indian Macroeconomic Data</h3>
           {!macroData ? (
-            <p style={{ color: "gray" }}>unable to load macroeconomic data</p>
+            <p style={{ color: "var(--sub-color)" }}>unable to load macroeconomic data</p>
           ) : (
             <>
               {[
@@ -466,7 +466,7 @@ const HubContent = () => {
               ].map((item) => (
                 <div key={item.label} style={{
                   display: "flex", justifyContent: "space-between",
-                  padding: "1.2rem", borderRadius: "1rem", background: "#f9f9f9",
+                  padding: "1.2rem", borderRadius: "1rem", background: "var(--card-bg-alt)",
                   marginBottom: "0.8rem"
                 }}>
                   <p style={{ fontWeight: "600", fontSize: "1.4rem" }}>{item.label}</p>
@@ -478,6 +478,14 @@ const HubContent = () => {
         </div>
       )}
 
+      {/* ── ANALYTICS TAB ── */}
+      {activeTab === "analytics" && (
+        <div>
+          <h3 style={{ marginBottom: "1rem", fontSize: "1.6rem" }}>📊 Spending Analytics</h3>
+          <Analytics />
+        </div>
+      )}
+
       {/* ── BUY MODAL ── */}
       {buyModal && (
         <div style={{
@@ -486,14 +494,14 @@ const HubContent = () => {
           justifyContent: "center", alignItems: "center", zIndex: 1000
         }}>
           <div style={{
-            background: "#fff", borderRadius: "2rem", padding: "3rem",
+            background: "var(--background-color)", borderRadius: "2rem", padding: "3rem",
             width: "90%", maxWidth: "400px"
           }}>
             <h3 style={{ marginBottom: "1rem", fontSize: "1.8rem" }}>Buy {buyModal.name}</h3>
-            <p style={{ color: "gray", marginBottom: "0.5rem", fontSize: "1.3rem" }}>
+            <p style={{ color: "var(--sub-color)", marginBottom: "0.5rem", fontSize: "1.3rem" }}>
               Current price: {formatPrice(buyModal.price)}
             </p>
-            <p style={{ color: "gray", marginBottom: "1.5rem", fontSize: "1.3rem" }}>
+            <p style={{ color: "var(--sub-color)", marginBottom: "1.5rem", fontSize: "1.3rem" }}>
               Your balance: {formatPrice(account.balance)}
             </p>
             <input
@@ -503,11 +511,12 @@ const HubContent = () => {
               onChange={(e) => setBuyAmount(e.target.value)}
               style={{
                 width: "100%", padding: "1rem", borderRadius: "1rem",
-                border: "1px solid #ddd", fontSize: "1.4rem", marginBottom: "0.8rem"
+                border: "1px solid var(--input-border, #ddd)", fontSize: "1.4rem", marginBottom: "0.8rem",
+                background: "var(--input-bg)", color: "var(--text-color)"
               }}
             />
             {buyAmount && buyModal.price && (
-              <p style={{ color: "gray", fontSize: "1.2rem", marginBottom: "1rem" }}>
+              <p style={{ color: "var(--sub-color)", fontSize: "1.2rem", marginBottom: "1rem" }}>
                 You will get: {(Number(buyAmount) / buyModal.price).toFixed(8)} {buyModal.symbol}
               </p>
             )}
@@ -526,7 +535,7 @@ const HubContent = () => {
               <button
                 onClick={() => { setBuyModal(null); setBuyAmount(""); }}
                 style={{
-                  flex: 1, padding: "1rem", background: "#f0f0f0", color: "#333",
+                  flex: 1, padding: "1rem", background: "var(--card-bg-alt)", color: "var(--text-color)",
                   border: "none", borderRadius: "1rem", fontWeight: "700",
                   fontSize: "1.4rem", cursor: "pointer"
                 }}
@@ -546,14 +555,14 @@ const HubContent = () => {
           justifyContent: "center", alignItems: "center", zIndex: 1000
         }}>
           <div style={{
-            background: "#fff", borderRadius: "2rem", padding: "3rem",
+            background: "var(--background-color)", borderRadius: "2rem", padding: "3rem",
             width: "90%", maxWidth: "400px"
           }}>
             <h3 style={{ marginBottom: "1rem", fontSize: "1.8rem" }}>Sell {sellModal.asset_symbol}</h3>
-            <p style={{ color: "gray", marginBottom: "0.5rem", fontSize: "1.3rem" }}>
+            <p style={{ color: "var(--sub-color)", marginBottom: "0.5rem", fontSize: "1.3rem" }}>
               You own: {formatUnits(sellModal.units)} units
             </p>
-            <p style={{ color: "gray", marginBottom: "1.5rem", fontSize: "1.3rem" }}>
+            <p style={{ color: "var(--sub-color)", marginBottom: "1.5rem", fontSize: "1.3rem" }}>
               Current price: {formatPrice(getLivePrice(sellModal.asset_symbol, sellModal.asset_type))}
             </p>
             <input
@@ -563,11 +572,12 @@ const HubContent = () => {
               onChange={(e) => setSellUnits(e.target.value)}
               style={{
                 width: "100%", padding: "1rem", borderRadius: "1rem",
-                border: "1px solid #ddd", fontSize: "1.4rem", marginBottom: "0.8rem"
+                border: "1px solid var(--input-border, #ddd)", fontSize: "1.4rem", marginBottom: "0.8rem",
+                background: "var(--input-bg)", color: "var(--text-color)"
               }}
             />
             {sellUnits && (
-              <p style={{ color: "gray", fontSize: "1.2rem", marginBottom: "1rem" }}>
+              <p style={{ color: "var(--sub-color)", fontSize: "1.2rem", marginBottom: "1rem" }}>
                 You will receive: {formatPrice(
                   Number(sellUnits) * getLivePrice(sellModal.asset_symbol, sellModal.asset_type)
                 )}
@@ -588,7 +598,7 @@ const HubContent = () => {
               <button
                 onClick={() => { setSellModal(null); setSellUnits(""); }}
                 style={{
-                  flex: 1, padding: "1rem", background: "#f0f0f0", color: "#333",
+                  flex: 1, padding: "1rem", background: "var(--card-bg-alt)", color: "var(--text-color)",
                   border: "none", borderRadius: "1rem", fontWeight: "700",
                   fontSize: "1.4rem", cursor: "pointer"
                 }}

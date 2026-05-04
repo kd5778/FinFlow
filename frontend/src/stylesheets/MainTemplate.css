@@ -146,7 +146,7 @@
 }
 
 .section:hover .sectionText {
-  color: black;
+  color: var(--text-color);
 }
 
 .central:hover {

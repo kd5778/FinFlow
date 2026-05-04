@@ -11,7 +11,6 @@ html {
   font-size: 11px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color-scheme: dark light;
   height: 100%;
   margin: 0;
 
@@ -40,6 +39,51 @@ html {
   --border-radius-1: 5rem;
   --border-radius-2: 2rem;
   --border-radius-3: 1rem;
+
+  --text-color: #000000;
+  --text-secondary: #555555;
+  --card-bg: #f5f5f5;
+  --card-bg-alt: #f9f9f9;
+  --input-bg: #ffffff;
+  --input-border: #ddd;
+  --scrollbar-thumb: rgb(231, 231, 231);
+  --shadow-color: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark only;
+  color: #e0e0e0;
+  background-color: #121212;
+
+  --primary-color: #00c9a7;
+  --primary-sub-color: #3d8b7e;
+  --secondary-color: #cf6fdd;
+  --secondary-sub-color: #a44db0;
+  --tertiary-color: #00e6b8;
+  --mertiary-color: #ff4444;
+  --background-color: #121212;
+  --hover-color: #2a2a2a;
+  --sub-color: rgb(160, 160, 160);
+
+  --text-color: #e0e0e0;
+  --text-secondary: #aaaaaa;
+  --card-bg: #1e1e1e;
+  --card-bg-alt: #252525;
+  --input-bg: #1e1e1e;
+  --input-border: #3a3a3a;
+  --scrollbar-thumb: #3a3a3a;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .menuOption {
+  color: #aaa;
+}
+html[data-theme="dark"] .menuOption:hover,
+html[data-theme="dark"] .menuOption:hover h3 {
+  color: #e0e0e0;
+}
+html[data-theme="dark"] .section:hover .sectionText {
+  color: #e0e0e0;
 }
 
 html:focus-within {
@@ -62,7 +106,7 @@ body ::-webkit-scrollbar-track {
 /* Handle */
 body ::-webkit-scrollbar-thumb {
   border-radius: 50rem;
-  background: rgb(231, 231, 231);
+  background: var(--scrollbar-thumb);
   width: 5rem;
 }
 

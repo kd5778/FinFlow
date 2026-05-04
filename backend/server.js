@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
@@ -175,10 +175,16 @@ app.post("/portfolio/buy", authenticate, async (req, res) => {
     );
 
     if (existing.length > 0) {
-      // add to existing holding
+      // compute weighted average buy price
+      const oldUnits = Number(existing[0].units);
+      const oldBuyPrice = Number(existing[0].buy_price || parsedBuyPrice);
+      const newTotalUnits = oldUnits + parsedUnits;
+      const weightedAvgPrice = ((oldUnits * oldBuyPrice) + (parsedUnits * parsedBuyPrice)) / newTotalUnits;
+      const newCurrentValue = newTotalUnits * parsedBuyPrice;
+
       await connection.query(
-        "UPDATE portfolio SET units = units + ?, buy_price = ?, current_value = (units + ?) * ? WHERE user_id = ? AND asset_symbol = ?",
-        [parsedUnits, parsedBuyPrice, parsedUnits, parsedBuyPrice, req.user.userId, asset_symbol]
+        "UPDATE portfolio SET units = ?, buy_price = ?, current_value = ? WHERE user_id = ? AND asset_symbol = ?",
+        [newTotalUnits, weightedAvgPrice, newCurrentValue, req.user.userId, asset_symbol]
       );
     } else {
       // new holding
@@ -190,8 +196,8 @@ app.post("/portfolio/buy", authenticate, async (req, res) => {
 
     // log transaction
     await connection.query(
-      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
-      [req.user.userId, "sent", `Bought ${asset_name} (${asset_symbol})`, totalCost, user.currency_symbol]
+      "INSERT INTO transactions (user_id, type, details, category, amount, currency_symbol) VALUES (?, ?, ?, ?, ?, ?)",
+      [req.user.userId, "sent", `Bought ${asset_name} (${asset_symbol})`, "Investments", totalCost, user.currency_symbol]
     );
 
     await connection.commit();
@@ -266,8 +272,8 @@ app.post("/portfolio/sell", authenticate, async (req, res) => {
 
     // log transaction
     await connection.query(
-      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
-      [req.user.userId, "received", `Sold ${asset_symbol}`, totalValue, user.currency_symbol]
+      "INSERT INTO transactions (user_id, type, details, category, amount, currency_symbol) VALUES (?, ?, ?, ?, ?, ?)",
+      [req.user.userId, "received", `Sold ${asset_symbol}`, "Investments", totalValue, user.currency_symbol]
     );
 
     await connection.commit();
@@ -625,7 +631,23 @@ app.get("/transaction/", authenticate, async (req, res) => {
   try {
     const connection = await pool.getConnection();
     const [rows] = await connection.query(
-      "SELECT type, details, amount, created FROM transactions WHERE user_id = ? ORDER BY created DESC",
+      "SELECT type, details, category, amount, created FROM transactions WHERE user_id = ? ORDER BY created DESC",
+      [req.user.userId]
+    );
+    connection.release();
+    return res.json({ status: 1, results: rows });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
+// ── ANALYTICS: spending by category ───────────────────────────────────────────
+app.get("/transaction/analytics", authenticate, async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "SELECT category, SUM(amount) as total FROM transactions WHERE user_id = ? AND type = 'sent' GROUP BY category ORDER BY total DESC",
       [req.user.userId]
     );
     connection.release();
@@ -638,7 +660,9 @@ app.get("/transaction/", authenticate, async (req, res) => {
 
 // FIXED: This endpoint now properly handles receiver account crediting
 app.post("/transaction/pay", authenticate, async (req, res) => {
-  const { amount, payeeName, accountNumber, sortCode } = req.body;
+  const { amount, payeeName, accountNumber, sortCode, category } = req.body;
+  const validCategories = ['Food & Dining', 'Rent & Housing', 'Shopping', 'Transport', 'Bills & Utilities', 'Entertainment', 'Healthcare', 'Education', 'Investments', 'Other'];
+  const safeCategory = validCategories.includes(category) ? category : 'Other';
   const parsedAmount = Number(amount);
 
   if (!parsedAmount || parsedAmount <= 0) {
@@ -714,14 +738,14 @@ app.post("/transaction/pay", authenticate, async (req, res) => {
 
     // Record transaction for sender
     await connection.query(
-      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
-      [sender.id, "sent", payeeName || receiver.account_name, parsedAmount, sender.currency_symbol]
+      "INSERT INTO transactions (user_id, type, details, category, amount, currency_symbol) VALUES (?, ?, ?, ?, ?, ?)",
+      [sender.id, "sent", payeeName || receiver.account_name, safeCategory, parsedAmount, sender.currency_symbol]
     );
 
     // Record transaction for receiver
     await connection.query(
-      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
-      [receiver.id, "received", sender.account_name, parsedAmount, receiver.currency_symbol]
+      "INSERT INTO transactions (user_id, type, details, category, amount, currency_symbol) VALUES (?, ?, ?, ?, ?, ?)",
+      [receiver.id, "received", sender.account_name, safeCategory, parsedAmount, receiver.currency_symbol]
     );
 
     // Commit the transaction

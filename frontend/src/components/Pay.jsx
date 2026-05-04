@@ -37,6 +37,7 @@ const Pay = () => {
         sortCode: "",
         accountNumber: "",
         amount: "",
+        category: "",
       })
     );
   }, []);
@@ -213,7 +214,7 @@ const Pay = () => {
                 label="sort code *"
                 type="string"
                 name="sortCode"
-                placeholder="IFSC1234567"
+                placeholder="IFSC123456"
                 onInput={onInput}
               ></Input>
               <p className="errorMessage">{errors && errors.sortCode}</p>
@@ -242,6 +243,53 @@ const Pay = () => {
                 {errors && errors.amount}
                 {amountCheck}
               </p>
+            </div>
+
+            <div className="inputContainer">
+              <label style={{
+                fontSize: "1.4rem",
+                fontWeight: "600",
+                textTransform: "lowercase",
+                marginBottom: "0.5rem",
+                display: "block",
+              }}>category *</label>
+              <select
+                name="category"
+                value={payInput.category || ""}
+                onChange={onInput}
+                style={{
+                  width: "100%",
+                  padding: "1.2rem 1.4rem",
+                  borderRadius: "1.2rem",
+                  border: "1px solid var(--input-border, #ddd)",
+                  fontSize: "1.4rem",
+                  fontWeight: "500",
+                  color: payInput.category ? "var(--text-color, #333)" : "var(--sub-color, #999)",
+                  background: "var(--input-bg, #fff)",
+                  cursor: "pointer",
+                  appearance: "none",
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 1.2rem center",
+                  outline: "none",
+                  transition: "border-color 0.2s",
+                }}
+                onFocus={(e) => e.target.style.borderColor = "var(--primary-color)"}
+                onBlur={(e) => e.target.style.borderColor = "var(--input-border, #ddd)"}
+              >
+                <option value="" disabled>select a category</option>
+                <option value="Food & Dining">🍔 Food & Dining</option>
+                <option value="Rent & Housing">🏠 Rent & Housing</option>
+                <option value="Shopping">🛍️ Shopping</option>
+                <option value="Transport">🚗 Transport</option>
+                <option value="Bills & Utilities">💡 Bills & Utilities</option>
+                <option value="Entertainment">🎬 Entertainment</option>
+                <option value="Healthcare">🏥 Healthcare</option>
+                <option value="Education">📚 Education</option>
+                <option value="Investments">📈 Investments</option>
+                <option value="Other">💰 Other</option>
+              </select>
+              <p className="errorMessage">{errors && errors.category}</p>
             </div>
 
             <div className="payButton">

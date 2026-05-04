@@ -51,7 +51,7 @@
 
 .menuOption {
   display: flex;
-  color: rgb(94, 94, 94);
+  color: var(--text-secondary);
   gap: 1.2rem;
   margin: 1rem;
   cursor: pointer;
@@ -59,11 +59,11 @@
 }
 
 .menuOption:hover {
-  color: black;
+  color: var(--text-color);
 }
 
 .menuOption:hover h3 {
-  color: black;
+  color: var(--text-color);
   font-weight: 600;
 }
 

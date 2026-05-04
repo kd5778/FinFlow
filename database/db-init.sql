@@ -1,4 +1,4 @@
-﻿CREATE DATABASE IF NOT EXISTS finflow_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS finflow_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE finflow_db;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -27,8 +27,24 @@ CREATE TABLE IF NOT EXISTS transactions (
   user_id INT NOT NULL,
   type ENUM('sent','received') NOT NULL DEFAULT 'sent',
   details VARCHAR(255) NOT NULL,
+  category VARCHAR(50) NOT NULL DEFAULT 'Other',
   amount DECIMAL(12,2) NOT NULL,
   currency_symbol VARCHAR(10) NOT NULL DEFAULT '₹',
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS portfolio (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  asset_symbol VARCHAR(50) NOT NULL,
+  asset_name VARCHAR(255) NOT NULL,
+  asset_type VARCHAR(50) NOT NULL,
+  units DECIMAL(18,8) NOT NULL,
+  buy_price DECIMAL(18,2) NOT NULL,
+  current_value DECIMAL(18,2) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_user_asset (user_id, asset_symbol)
 );

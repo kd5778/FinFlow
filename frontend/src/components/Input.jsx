@@ -22,7 +22,7 @@ const Input = (props) => {
           placeholder={placeholder}
           sx={{
             borderRadius: "1rem",
-            backgroundColor: "white",
+            backgroundColor: "var(--input-bg)",
             height: "4rem",
           }}
           autoFocus={autoFocus}
@@ -42,7 +42,7 @@ const Input = (props) => {
         InputProps={{
           sx: {
             borderRadius: "1rem",
-            backgroundColor: "white",
+            backgroundColor: "var(--input-bg)",
             zIndex: "0",
             height: "4rem",
           },

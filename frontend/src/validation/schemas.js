@@ -170,6 +170,26 @@ export const pay = {
       "string.pattern.base":
         "amount must be a valid decimal number with up to 2 decimal places",
     }),
+
+  category: joi
+    .string()
+    .required()
+    .valid(
+      "Food & Dining",
+      "Rent & Housing",
+      "Shopping",
+      "Transport",
+      "Bills & Utilities",
+      "Entertainment",
+      "Healthcare",
+      "Education",
+      "Investments",
+      "Other"
+    )
+    .messages({
+      "string.empty": "category is required",
+      "any.only": "please select a valid category",
+    }),
 };
 
 // for debit card validation

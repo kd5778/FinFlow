@@ -5,6 +5,7 @@ import "../stylesheets/AltTemplate.css";
 import Notifications from "./Notifications";
 import PasswordChange from "./PasswordChange";
 import DeleteAccount from "./DeleteAccount";
+import ThemeToggle from "./ThemeToggle";
 
 // settings component
 
@@ -25,6 +26,10 @@ const Settings = () => {
 
           <div className="settingsBody">
             <div className="accordionContainer">
+              <div className="accordionBox">
+                <ThemeToggle />
+              </div>
+
               <div className="accordionBox">
                 <Notifications />
               </div>

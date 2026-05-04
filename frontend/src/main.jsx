@@ -9,6 +9,12 @@ import { Provider } from "react-redux";
 import { store } from "./store/store.js";
 import { createRoot } from "react-dom/client";
 
+// Apply saved theme before React mounts to prevent flash
+const savedTheme = localStorage.getItem("finflow-theme");
+if (savedTheme === "dark") {
+  document.documentElement.setAttribute("data-theme", "dark");
+}
+
 const container = document.getElementById("root");
 const root = createRoot(
   container,
