@@ -113,6 +113,175 @@ const sendResetPasswordEmail = async (email, resetToken) => {
   return { delivered: true, resetLink };
 };
 
+// ── GET PORTFOLIO ─────────────────────────────────────────────────────────────
+app.get("/portfolio/", authenticate, async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "SELECT * FROM portfolio WHERE user_id = ? ORDER BY created_at DESC",
+      [req.user.userId]
+    );
+    connection.release();
+    return res.json({ status: 1, results: rows });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
+// ── BUY ASSET ─────────────────────────────────────────────────────────────────
+app.post("/portfolio/buy", authenticate, async (req, res) => {
+  const { asset_symbol, asset_name, asset_type, units, buy_price } = req.body;
+  const parsedUnits = Number(units);
+  const parsedBuyPrice = Number(buy_price);
+  const totalCost = parsedUnits * parsedBuyPrice;
+
+  if (!asset_symbol || !asset_name || !asset_type || !parsedUnits || !parsedBuyPrice)
+    return res.json({ status: 0, reason: "Missing required fields" });
+
+  if (totalCost <= 0)
+    return res.json({ status: 0, reason: "Invalid purchase amount" });
+
+  const connection = await pool.getConnection();
+  try {
+    // check sender balance
+    const [userRows] = await connection.query(
+      "SELECT balance, currency_symbol, account_name FROM users WHERE id = ?",
+      [req.user.userId]
+    );
+    if (!userRows.length) {
+      connection.release();
+      return res.json({ status: 0, reason: "User not found" });
+    }
+
+    const user = userRows[0];
+    if (user.balance < totalCost) {
+      connection.release();
+      return res.json({ status: 0, reason: "Insufficient balance" });
+    }
+
+    await connection.beginTransaction();
+
+    // deduct balance
+    await connection.query(
+      "UPDATE users SET balance = balance - ? WHERE id = ?",
+      [totalCost, req.user.userId]
+    );
+
+    // check if user already owns this asset
+    const [existing] = await connection.query(
+      "SELECT id, units FROM portfolio WHERE user_id = ? AND asset_symbol = ?",
+      [req.user.userId, asset_symbol]
+    );
+
+    if (existing.length > 0) {
+      // add to existing holding
+      await connection.query(
+        "UPDATE portfolio SET units = units + ?, buy_price = ?, current_value = (units + ?) * ? WHERE user_id = ? AND asset_symbol = ?",
+        [parsedUnits, parsedBuyPrice, parsedUnits, parsedBuyPrice, req.user.userId, asset_symbol]
+      );
+    } else {
+      // new holding
+      await connection.query(
+        "INSERT INTO portfolio (user_id, asset_symbol, asset_name, asset_type, units, buy_price, current_value) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [req.user.userId, asset_symbol, asset_name, asset_type, parsedUnits, parsedBuyPrice, totalCost]
+      );
+    }
+
+    // log transaction
+    await connection.query(
+      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
+      [req.user.userId, "sent", `Bought ${asset_name} (${asset_symbol})`, totalCost, user.currency_symbol]
+    );
+
+    await connection.commit();
+    connection.release();
+    return res.json({ status: 1, message: "Purchase successful" });
+
+  } catch (error) {
+    await connection.rollback();
+    connection.release();
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
+// ── SELL ASSET ────────────────────────────────────────────────────────────────
+app.post("/portfolio/sell", authenticate, async (req, res) => {
+  const { asset_symbol, units, current_price } = req.body;
+  const parsedUnits = Number(units);
+  const parsedCurrentPrice = Number(current_price);
+  const totalValue = parsedUnits * parsedCurrentPrice;
+
+  if (!asset_symbol || !parsedUnits || !parsedCurrentPrice)
+    return res.json({ status: 0, reason: "Missing required fields" });
+
+  const connection = await pool.getConnection();
+  try {
+    // check holding exists
+    const [holding] = await connection.query(
+      "SELECT * FROM portfolio WHERE user_id = ? AND asset_symbol = ?",
+      [req.user.userId, asset_symbol]
+    );
+
+    if (!holding.length) {
+      connection.release();
+      return res.json({ status: 0, reason: "Asset not found in portfolio" });
+    }
+
+    if (holding[0].units < parsedUnits) {
+      connection.release();
+      return res.json({ status: 0, reason: "Not enough units to sell" });
+    }
+
+    const [userRows] = await connection.query(
+      "SELECT currency_symbol FROM users WHERE id = ?",
+      [req.user.userId]
+    );
+    const user = userRows[0];
+
+    await connection.beginTransaction();
+
+    // credit balance
+    await connection.query(
+      "UPDATE users SET balance = balance + ? WHERE id = ?",
+      [totalValue, req.user.userId]
+    );
+
+    const remainingUnits = holding[0].units - parsedUnits;
+
+    if (remainingUnits <= 0) {
+      // remove from portfolio completely
+      await connection.query(
+        "DELETE FROM portfolio WHERE user_id = ? AND asset_symbol = ?",
+        [req.user.userId, asset_symbol]
+      );
+    } else {
+      // reduce units
+      await connection.query(
+        "UPDATE portfolio SET units = ?, current_value = ? * ? WHERE user_id = ? AND asset_symbol = ?",
+        [remainingUnits, remainingUnits, parsedCurrentPrice, req.user.userId, asset_symbol]
+      );
+    }
+
+    // log transaction
+    await connection.query(
+      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, ?, ?, ?, ?)",
+      [req.user.userId, "received", `Sold ${asset_symbol}`, totalValue, user.currency_symbol]
+    );
+
+    await connection.commit();
+    connection.release();
+    return res.json({ status: 1, message: "Sale successful" });
+
+  } catch (error) {
+    await connection.rollback();
+    connection.release();
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
 const ensureResetColumns = async () => {
   const connection = await pool.getConnection();
 
