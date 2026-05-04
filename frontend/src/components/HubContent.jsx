@@ -27,6 +27,8 @@ const HubContent = () => {
   const [buyAmount, setBuyAmount] = useState("");
   const [sellUnits, setSellUnits] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showAllCrypto, setShowAllCrypto] = useState(false);
+  const [showAllStocks, setShowAllStocks] = useState(false);
 
   const INR_RATE = 83.5;
 
@@ -34,7 +36,7 @@ const HubContent = () => {
   const fetchCrypto = async () => {
     try {
       const { data } = await axios.get(
-        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana,ripple&vs_currencies=inr&include_24hr_change=true"
+        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin,solana,ripple,cardano,polkadot,chainlink,litecoin,avalanche-2&vs_currencies=inr&include_24hr_change=true"
       );
       const formatted = [
         { symbol: "BTC", name: "Bitcoin", price: data.bitcoin?.inr, change: data.bitcoin?.inr_24h_change },
@@ -42,6 +44,11 @@ const HubContent = () => {
         { symbol: "SOL", name: "Solana", price: data.solana?.inr, change: data.solana?.inr_24h_change },
         { symbol: "XRP", name: "Ripple", price: data.ripple?.inr, change: data.ripple?.inr_24h_change },
         { symbol: "DOGE", name: "Dogecoin", price: data.dogecoin?.inr, change: data.dogecoin?.inr_24h_change },
+        { symbol: "ADA", name: "Cardano", price: data.cardano?.inr, change: data.cardano?.inr_24h_change },
+        { symbol: "DOT", name: "Polkadot", price: data.polkadot?.inr, change: data.polkadot?.inr_24h_change },
+        { symbol: "LINK", name: "Chainlink", price: data.chainlink?.inr, change: data.chainlink?.inr_24h_change },
+        { symbol: "LTC", name: "Litecoin", price: data.litecoin?.inr, change: data.litecoin?.inr_24h_change },
+        { symbol: "AVAX", name: "Avalanche", price: data["avalanche-2"]?.inr, change: data["avalanche-2"]?.inr_24h_change },
       ].filter(c => c.price);
       setCryptoData(formatted);
     } catch (err) {
@@ -52,7 +59,7 @@ const HubContent = () => {
   // fetch stocks using API Ninjas
   const fetchStocks = async () => {
     try {
-      const symbols = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "WIPRO"];
+      const symbols = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "WIPRO", "ICICIBANK", "SBIN", "BHARTIARTL", "ITC", "LT"];
       const results = await Promise.all(
         symbols.map((s) =>
           axios.get(`https://api.api-ninjas.com/v1/stockprice?ticker=${s}.NS`, {
@@ -302,7 +309,7 @@ const HubContent = () => {
               {cryptoData.length === 0 && (
                 <p style={{ color: "var(--sub-color)", marginBottom: "2rem" }}>unable to load crypto prices</p>
               )}
-              {cryptoData.map((coin) => (
+              {cryptoData.slice(0, showAllCrypto ? cryptoData.length : 5).map((coin) => (
                 <div key={coin.symbol} style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                   padding: "1.2rem", borderRadius: "1rem", background: "var(--card-bg-alt)",
@@ -332,13 +339,25 @@ const HubContent = () => {
                   </button>
                 </div>
               ))}
+              {cryptoData.length > 5 && (
+                <button
+                  onClick={() => setShowAllCrypto(!showAllCrypto)}
+                  style={{
+                    width: "100%", padding: "1rem", background: "transparent", color: "var(--primary-color)",
+                    border: "1px solid var(--primary-color)", borderRadius: "1rem", cursor: "pointer",
+                    fontWeight: "600", fontSize: "1.3rem", marginTop: "0.5rem", marginBottom: "2rem"
+                  }}
+                >
+                  {showAllCrypto ? "Show Less" : "Show More"}
+                </button>
+              )}
 
               {/* Stocks */}
               <h3 style={{ margin: "2rem 0 1rem", fontSize: "1.6rem" }}>📈 Indian Stocks (NSE)</h3>
               {stockData.length === 0 && (
                 <p style={{ color: "var(--sub-color)" }}>unable to load stock prices</p>
               )}
-              {stockData.map((stock) => (
+              {stockData.slice(0, showAllStocks ? stockData.length : 5).map((stock) => (
                 <div key={stock.symbol} style={{
                   display: "flex", justifyContent: "space-between", alignItems: "center",
                   padding: "1.2rem", borderRadius: "1rem", background: "var(--card-bg-alt)",
@@ -368,6 +387,18 @@ const HubContent = () => {
                   </button>
                 </div>
               ))}
+              {stockData.length > 5 && (
+                <button
+                  onClick={() => setShowAllStocks(!showAllStocks)}
+                  style={{
+                    width: "100%", padding: "1rem", background: "transparent", color: "var(--primary-color)",
+                    border: "1px solid var(--primary-color)", borderRadius: "1rem", cursor: "pointer",
+                    fontWeight: "600", fontSize: "1.3rem", marginTop: "0.5rem"
+                  }}
+                >
+                  {showAllStocks ? "Show Less" : "Show More"}
+                </button>
+              )}
             </>
           )}
         </div>
