@@ -23,13 +23,21 @@ async function setupDatabase() {
     await connection.query("USE finflow_db");
 
     // Read and execute the SQL file
-    const sqlPath = path.join(__dirname, "db-init.sql");
-    const sql = fs.readFileSync(sqlPath, "utf8");
-    const statements = sql.split(";").filter(stmt => stmt.trim().length > 0);
-
-    for (const statement of statements) {
-      if (statement.trim() && !statement.includes("CREATE DATABASE") && !statement.includes("USE")) {
-        await connection.query(statement);
+    // Execute multiple SQL files
+    const sqlFiles = ["db-init.sql", "create-splits.sql"];
+    for (const fileName of sqlFiles) {
+      const sqlPath = path.join(__dirname, fileName);
+      if (fs.existsSync(sqlPath)) {
+        console.log(`Executing ${fileName}...`);
+        const sql = fs.readFileSync(sqlPath, "utf8");
+        const statements = sql.split(";").filter(stmt => stmt.trim().length > 0);
+        for (const statement of statements) {
+          if (statement.trim() && !statement.includes("CREATE DATABASE") && !statement.includes("USE")) {
+            await connection.query(statement);
+          }
+        }
+      } else {
+        console.log(`Warning: ${sqlPath} not found`);
       }
     }
 

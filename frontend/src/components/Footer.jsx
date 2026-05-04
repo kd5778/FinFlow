@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch } from "react-redux";
-import { setToast, setScreenMode, selectScreenMode } from "../store/mainSlice";
-import { toastTrigger } from "../helpers/helpers";
+import { setScreenMode } from "../store/mainSlice";
+import { useNavigate } from "react-router-dom";
 
 // importing stylesheets
 import "../stylesheets/MainTemplate.css";
@@ -11,21 +11,17 @@ import "../stylesheets/AltTemplate.css";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import SwapVerticalCircleIcon from "@mui/icons-material/SwapVerticalCircle";
+import CallSplitIcon from "@mui/icons-material/CallSplit";
 
 // footer component
-
 const Footer = (props) => {
   const { footerVisibility } = props;
-
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const toast = {
-    message: "Hello from Main",
-    progressColor: "var(--primary-color)",
-  };
-
-  const onClick = (e) => {
-    dispatch(setScreenMode(e.currentTarget.id));
+  const handleNav = (screenMode, path) => {
+    dispatch(setScreenMode(screenMode));
+    navigate(path);
   };
 
   return (
@@ -35,15 +31,11 @@ const Footer = (props) => {
           `mainComponentFooter ` + `${footerVisibility ? "" : "altFooter"}`
         }
       >
-        <div className="section" onClick={onClick} id="home">
+        {/* Home */}
+        <div className="section" onClick={() => handleNav("home", "/main")} id="home">
           <div className="sectionIcon">
             <HomeOutlinedIcon
-              sx={{
-                padding: "0rem",
-                margin: "0",
-                width: "3rem",
-                height: "3rem",
-              }}
+              sx={{ padding: "0rem", margin: "0", width: "3rem", height: "3rem" }}
               fontSize="large"
             />
           </div>
@@ -52,37 +44,27 @@ const Footer = (props) => {
           </div>
         </div>
 
-        <div className="section central" onClick={onClick} id="transfer">
+        {/* Transfer — centre button */}
+        <div className="section central" onClick={() => handleNav("transfer", "/transfer")} id="transfer">
           <div className="sectionIcon">
             <SwapVerticalCircleIcon
-              sx={{
-                padding: "0rem",
-                margin: "0",
-                width: "4rem",
-                height: "4rem",
-              }}
+              sx={{ padding: "0rem", margin: "0", width: "4rem", height: "4rem" }}
               fontSize="large"
             />
           </div>
-
           <div>
             <p className="sectionText">transfer</p>
           </div>
         </div>
 
-        <div className="section" id="hub" onClick={onClick}>
+        {/* Hub */}
+        <div className="section" id="hub" onClick={() => handleNav("hub", "/main")}>
           <div className="sectionIcon">
             <DashboardOutlinedIcon
-              sx={{
-                padding: "0rem",
-                margin: "0",
-                width: "3rem",
-                height: "3rem",
-              }}
+              sx={{ padding: "0rem", margin: "0", width: "3rem", height: "3rem" }}
               fontSize="large"
             />
           </div>
-
           <div>
             <p className="sectionText">hub</p>
           </div>

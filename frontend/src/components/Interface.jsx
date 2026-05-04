@@ -1,5 +1,5 @@
-import React, {useState} from "react";
-import { Routes, Route, useNavigate  } from "react-router-dom";
+import React from "react";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Welcome from "./Welcome";
 import Register from "./Register";
 import Login from "./Login";
@@ -17,57 +17,49 @@ import Settings from "./Settings";
 import AltTemplate from "./AltTemplate";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
+import Splitwise from "./Splitwise";
 import { useSelector } from "react-redux";
 import { selectScreenMode } from "../store/mainSlice";
-import RedirectToHome from "./RedirectToHome"
 
 // main interface component
 const Interface = () => {
-
   const screenMode = useSelector(selectScreenMode);
 
   // selecting what to show depending on the screen mode
   let registerComponent = <Register />;
   let mainComponent = <Home />;
 
-    
-
   // return depending on the screenmode
   switch (screenMode) {
     case 0:
       registerComponent = <Register />;
       break;
-
     case 1:
       registerComponent = <StatusUpdate message={"registration complete"} />;
       break;
-
     case "home":
       mainComponent = <Home />;
       break;
-
     case "transfer":
       mainComponent = <Transfer />;
       break;
-
     case "hub":
       mainComponent = <Hub />;
       break;
-
     case "profile":
       mainComponent = <Profile />;
       break;
-
     case "help":
       mainComponent = <Help />;
       break;
-
+    case "splitwise":
+      mainComponent = <Splitwise />;
+      break;
     default:
       break;
   }
 
   return (
-    // various routes
     <Routes>
       <Route path="/" element={<Welcome />} />
 
@@ -85,20 +77,21 @@ const Interface = () => {
         element={<MainTemplate component={mainComponent} />}
       />
 
+      <Route
+        path="/transfer"
+        element={<MainTemplate component={<Transfer />} />}
+      />
+
+      <Route
+        path="/splitwise"
+        element={<MainTemplate component={<Splitwise />} />}
+      />
 
       <Route path="/help" element={<AltTemplate component={<Help />} />} />
+      <Route path="/settings" element={<AltTemplate component={<Settings />} />} />
+      <Route path="/profile" element={<AltTemplate component={<Profile />} />} />
 
-      <Route
-        path="/settings"
-        element={<AltTemplate component={<Settings />} />}
-      />
-
-      <Route
-        path="/profile"
-        element={<AltTemplate component={<Profile />} />}
-      />
-
-      <Route path="*" element={<RedirectToHome />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

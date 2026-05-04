@@ -29,7 +29,7 @@ const root = createRoot(
 root.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Provider store={store}>
           <App />
         </Provider>

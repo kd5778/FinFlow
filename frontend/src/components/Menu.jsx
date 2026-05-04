@@ -114,6 +114,19 @@ const Menu = (props) => {
             </div>
 
             <div className="menuOptionBox">
+              <Link to="/splitwise">
+                <div className="menuOption" onClick={onClick}>
+                  <div>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2L13.09 8.26L22 9L17 14.74L18.18 21.26L12 18L5.82 21.26L7 14.74L2 9L10.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3>splitwise</h3>
+                </div>
+              </Link>
+            </div>
+
+            <div className="menuOptionBox">
               <Link to="/profile">
                 <div className="menuOption" onClick={onClick}>
                   <div>
@@ -145,6 +158,8 @@ const Menu = (props) => {
                 </div>
               </Link>
             </div>
+
+
 
             <div className="menuOptionBox">
               <div className="menuOption logOut" onClick={handleLogout}>
