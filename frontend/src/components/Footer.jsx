@@ -69,6 +69,19 @@ const Footer = (props) => {
             <p className="sectionText">hub</p>
           </div>
         </div>
+
+        {/* Splitwise */}
+        <div className="section" id="splitwise" onClick={() => handleNav("splitwise", "/splitwise")}>
+          <div className="sectionIcon">
+            <CallSplitIcon
+              sx={{ padding: "0rem", margin: "0", width: "3rem", height: "3rem" }}
+              fontSize="large"
+            />
+          </div>
+          <div>
+            <p className="sectionText">splitwise</p>
+          </div>
+        </div>
       </div>
     </>
   );

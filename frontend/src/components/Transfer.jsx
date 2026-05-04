@@ -9,8 +9,6 @@ import Tab from "@mui/material/Tab";
 
 import Pay from "./Pay";
 import Receive from "./Receive";
-import SplitBill from "./SplitBill";
-import SplitHistory from "./SplitHistory";
 
 // pay and receive money
 
