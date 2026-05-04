@@ -9,6 +9,8 @@ import Tab from "@mui/material/Tab";
 
 import Pay from "./Pay";
 import Receive from "./Receive";
+import SplitBill from "./SplitBill";
+import SplitHistory from "./SplitHistory";
 
 // pay and receive money
 
@@ -63,11 +65,14 @@ const Transfer = () => {
                       borderRadius: "2rem 2rem 0 0",
                     }}
                   />
+
+
                 </Tabs>
               </div>
             </div>
           </div>
           {value === 0 ? <Pay /> : <Receive />}
+
         </div>
       </div>
     </>

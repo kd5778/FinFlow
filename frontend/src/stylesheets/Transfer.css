@@ -102,3 +102,489 @@
 .debitExtras div {
   width: 100%;
 }
+
+/* ── SPLITWISE ────────────────────────────────── */
+
+.splitwisePage {
+  padding: 0 0 4rem;
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.swTabButtons {
+  display: flex;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+
+.swTabBtn {
+  flex: 1;
+  padding: 0.9rem 1rem;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #555;
+}
+
+.swTabBtn.active {
+  background: var(--primary-color, #007b60);
+  color: white;
+}
+
+.swTabContent {
+  width: 100%;
+}
+
+/* Create Split form */
+.splitBillContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.swFieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.4rem;
+}
+
+.swLabel {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.swInput {
+  padding: 1rem 1.2rem;
+  border: 1.5px solid #ddd;
+  border-radius: 1rem;
+  font-size: 1.3rem;
+  background: white;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.swInput:focus {
+  outline: none;
+  border-color: var(--primary-color, #007b60);
+}
+
+.swInput:disabled {
+  background: #f5f5f5;
+  color: #999;
+}
+
+.swInputSm {
+  font-size: 1.2rem;
+  padding: 0.8rem 1rem;
+}
+
+.swToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 1.8rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.swToggle input[type="checkbox"] {
+  width: 1.6rem;
+  height: 1.6rem;
+  accent-color: var(--primary-color, #007b60);
+  cursor: pointer;
+}
+
+/* Shares list */
+.swSharesList {
+  margin-bottom: 2rem;
+}
+
+.swSharesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.swSharesHeader h3 {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.swEqualBadge {
+  background: #e8f5f0;
+  color: var(--primary-color, #007b60);
+  padding: 0.3rem 0.8rem;
+  border-radius: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.swShareRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  background: #f9f9f9;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.swShareIndex {
+  width: 2.4rem;
+  height: 2.4rem;
+  min-width: 2.4rem;
+  background: var(--primary-color, #007b60);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.swShareFields {
+  display: flex;
+  flex: 1;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.swShareAmount {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  background: #e8f5f0;
+  color: var(--primary-color, #007b60);
+  border-radius: 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.swRemoveBtn {
+  background: #fee;
+  color: #c90909;
+  border: none;
+  border-radius: 50%;
+  width: 2.8rem;
+  height: 2.8rem;
+  min-width: 2.8rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.swRemoveBtn:hover {
+  background: #fcc;
+}
+
+.swAddBtn {
+  background: transparent;
+  color: var(--primary-color, #007b60);
+  border: 2px dashed var(--primary-color, #007b60);
+  padding: 0.9rem 1.5rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  font-size: 1.3rem;
+  font-weight: 600;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.swAddBtn:hover {
+  background: #e8f5f0;
+}
+
+/* Info box */
+.swInfoBox {
+  background: #f0f9f6;
+  border-left: 4px solid var(--primary-color, #007b60);
+  padding: 1.5rem;
+  border-radius: 0 1rem 1rem 0;
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.swInfoBox ul {
+  margin: 0.8rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.swInfoBox li {
+  margin-bottom: 0.4rem;
+}
+
+/* History */
+.splitHistory {
+  width: 100%;
+}
+
+.swEmptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.swRefreshBtn {
+  background: transparent;
+  border: 1.5px solid #ddd;
+  padding: 0.5rem 1rem;
+  border-radius: 0.8rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #555;
+  transition: all 0.2s;
+}
+
+.swRefreshBtn:hover {
+  border-color: var(--primary-color, #007b60);
+  color: var(--primary-color, #007b60);
+}
+
+.swSplitCard {
+  background: #fff;
+  border: 1.5px solid #eee;
+  border-radius: 1.2rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.swSplitCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.2rem;
+  gap: 1rem;
+}
+
+.swRoleBadge {
+  font-size: 1rem;
+  background: #f0f0f0;
+  color: #555;
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.6rem;
+  font-weight: 500;
+}
+
+.swMyShareBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff8e6;
+  border: 1.5px solid #f0c040;
+  border-radius: 0.8rem;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.2rem;
+  font-size: 1.2rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.swMyShareBanner.settled {
+  background: #e8f5f0;
+  border-color: #007b60;
+  color: #007b60;
+  font-weight: 600;
+}
+
+
+.swSplitTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 0.3rem;
+}
+
+.swSplitDesc {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 0;
+}
+
+.swSplitTotal {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+  text-align: right;
+}
+
+.swStatusBadge {
+  display: inline-block;
+  padding: 0.2rem 0.8rem;
+  border-radius: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.swStatusBadge.open {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.swStatusBadge.settled {
+  background: #d4edda;
+  color: #155724;
+}
+
+.swSharesTable {
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.swSharesTableHead {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.6rem;
+  padding: 0 0.5rem;
+}
+
+.swSharesTableRow {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.2fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.8rem 0.5rem;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 1.2rem;
+}
+
+.swShareName {
+  font-weight: 600;
+}
+
+.swShareAmt {
+  font-weight: 600;
+}
+
+.swShareStatus.settled {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.swShareStatus.pending {
+  color: #f0a000;
+  font-weight: 500;
+}
+
+.swSettleBtn {
+  background: var(--primary-color, #007b60);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.8rem;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+
+.swSettleBtn:hover {
+  opacity: 0.85;
+}
+
+.swSettleBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* -- Search dropdown & selected user ------------------- */
+.swSearchDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1.5px solid #ddd;
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 999;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.swSearchResult {
+  padding: 1rem 1.2rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f5f5f5;
+  transition: background 0.15s;
+}
+
+.swSearchResult:hover {
+  background: #f0f9f6;
+}
+
+.swSearchResult:last-child {
+  border-bottom: none;
+}
+
+.swSelectedUser {
+  display: flex;
+  flex-direction: column;
+  background: #e8f5f0;
+  border-radius: 0.8rem;
+  padding: 0.6rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #007b60;
+  gap: 0.2rem;
+}
+
+.swCustomAmtRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  background: #fafafa;
+  border-radius: 0.8rem;
+  font-size: 1.2rem;
+}
+
+.swCustomAmtRow .swInput {
+  max-width: 160px;
+}
+
+/* -- Include-myself self row -------------------- */
+.swSelfRow {
+  border: 1.5px solid #007b60;
+  background: #f0f9f6;
+}
+
+.swToggleHighlight {
+  background: #f0f9f6;
+  border: 1.5px dashed #007b60;
+  border-radius: 1rem;
+  padding: 0.8rem 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.swToggleHint {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #888;
+  margin-top: 0.2rem;
+}

@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
@@ -12,13 +12,23 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
-    credentials: true,
-    exposedHeaders: ["token"],
-  })
-);
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. curl, Postman)
+    if (!origin) return callback(null, true);
+    // In production, use the env variable
+    if (process.env.FRONTEND_ORIGIN && origin === process.env.FRONTEND_ORIGIN) {
+      return callback(null, true);
+    }
+    // In development, allow any localhost port
+    if (/^http:\/\/localhost:\d+$/.test(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+  exposedHeaders: ["token"],
+}));
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
@@ -112,6 +122,242 @@ const sendResetPasswordEmail = async (email, resetToken) => {
 
   return { delivered: true, resetLink };
 };
+
+// ── SPLITWISE ENDPOINTS ────────────────────────────────────────────────────────
+
+// GET creator's open splits with shares
+// USER SEARCH for split friends
+app.get("/user/search", authenticate, async (req, res) => {
+  const { q } = req.query; // phone, email, account_number, name
+  if (!q || q.length < 3) {
+    return res.json({ status: 1, results: [] });
+  }
+
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      `SELECT id, first_name, last_name, phone, email, account_number, ifsc_code, account_name
+       FROM users 
+       WHERE id != ?
+         AND (
+           phone LIKE ? OR email LIKE ? OR account_number LIKE ?
+           OR account_name LIKE ? OR first_name LIKE ? OR last_name LIKE ?
+         )
+       LIMIT 10`,
+      [req.user.userId, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`]
+    );
+    connection.release();
+    return res.json({ status: 1, results: rows });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
+app.get("/split/list", authenticate, async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    // Return splits where user is the CREATOR or a PARTICIPANT
+    const [splits] = await connection.query(`
+      SELECT DISTINCT s.id, s.total_amount, s.description, s.status, s.created_at,
+             s.creator_id,
+             COUNT(ss2.id) as share_count, SUM(ss2.settled) as settled_count
+      FROM splits s
+      LEFT JOIN split_shares ss2 ON s.id = ss2.split_id
+      WHERE s.status = 'open'
+        AND (
+          s.creator_id = ?
+          OR EXISTS (SELECT 1 FROM split_shares ss3 WHERE ss3.split_id = s.id AND ss3.user_id = ?)
+        )
+      GROUP BY s.id
+      ORDER BY s.created_at DESC
+    `, [req.user.userId, req.user.userId]);
+
+    // Add share details for each split
+    for (let split of splits) {
+      const [shares] = await connection.query(`
+        SELECT ss.id, ss.share_amount, ss.settled, ss.user_id,
+               u.account_name, u.account_number, u.ifsc_code
+        FROM split_shares ss
+        JOIN users u ON ss.user_id = u.id
+        WHERE ss.split_id = ?
+      `, [split.id]);
+      split.shares = shares;
+      // Flag whether current user is creator
+      split.is_creator = split.creator_id === req.user.userId;
+      // Flag current user's own share (for settling)
+      const myShare = shares.find(s => s.user_id === req.user.userId);
+      split.my_share = myShare || null;
+    }
+
+    connection.release();
+    return res.json({ status: 1, results: splits });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
+
+// CREATE split
+app.post("/split/create", authenticate, async (req, res) => {
+  const { total_amount, description, shares } = req.body; // shares: [{account_number, ifsc_code, share_amount}]
+  const parsedTotal = Number(total_amount);
+
+  if (!parsedTotal || parsedTotal <= 0) {
+    return res.json({ status: 0, reason: "Invalid total amount" });
+  }
+  if (!Array.isArray(shares) || shares.length < 2 || shares.length > 10) {
+    return res.json({ status: 0, reason: "2-10 shares required" });
+  }
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Create split
+    const [splitResult] = await connection.query(
+      "INSERT INTO splits (creator_id, total_amount, description) VALUES (?, ?, ?)",
+      [req.user.userId, parsedTotal, description || 'Group split']
+    );
+    const splitId = splitResult.insertId;
+
+    let totalShares = 0;
+    for (const share of shares) {
+      const { account_number, ifsc_code, share_amount } = share;
+      const parsedShare = Number(share_amount);
+      if (!account_number || !ifsc_code || !parsedShare || parsedShare <= 0) {
+        throw new Error("Invalid share data");
+      }
+
+      // Find receiver
+      const [userRows] = await connection.query(
+        "SELECT id FROM users WHERE account_number = ? AND ifsc_code = ?",
+        [account_number, ifsc_code]
+      );
+      if (!userRows.length) {
+        throw new Error(`User not found: ${account_number}`);
+      }
+      const userId = userRows[0].id;
+
+      // Prevent duplicate shares
+      const [existingShare] = await connection.query(
+        "SELECT id FROM split_shares WHERE split_id = ? AND user_id = ?",
+        [splitId, userId]
+      );
+      if (existingShare.length) {
+        throw new Error("Duplicate share for user");
+      }
+
+      await connection.query(
+        "INSERT INTO split_shares (split_id, user_id, share_amount) VALUES (?, ?, ?)",
+        [splitId, userId, parsedShare]
+      );
+      totalShares += parsedShare;
+    }
+
+    if (Math.abs(totalShares - parsedTotal) > 0.01) {
+      await connection.rollback();
+      connection.release();
+      return res.json({ status: 0, reason: `Shares total (${totalShares}) != split total (${parsedTotal})` });
+    }
+
+    // Auto-settle creator's own share if included (optional)
+    await connection.query("UPDATE split_shares SET settled = TRUE WHERE split_id = ? AND user_id = ?", [splitId, req.user.userId]);
+
+    await connection.commit();
+    connection.release();
+    return res.json({ status: 1, split_id: splitId });
+  } catch (error) {
+    await connection.rollback();
+    connection.release();
+    console.error(error);
+    return res.status(400).json({ status: 0, reason: error.message || "Failed to create split" });
+  }
+});
+
+// SETTLE share (pay the amount to creator)
+app.post("/split/settle/:shareId", authenticate, async (req, res) => {
+  try {
+    const shareId = Number(req.params.shareId);
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    // Get share details
+    const [shares] = await connection.query(`
+      SELECT ss.*, s.creator_id, s.total_amount, u.account_name as creator_name
+      FROM split_shares ss 
+      JOIN splits s ON ss.split_id = s.id 
+      JOIN users u ON s.creator_id = u.id
+      WHERE ss.id = ? AND ss.settled = FALSE
+    `, [shareId]);
+
+    if (!shares.length) {
+      await connection.rollback();
+      connection.release();
+      return res.json({ status: 0, reason: "Share not found or already settled" });
+    }
+
+    const share = shares[0];
+    if (share.user_id !== req.user.userId) {
+      await connection.rollback();
+      connection.release();
+      return res.json({ status: 0, reason: "Not your share" });
+    }
+
+    // Get payer (settler) balance
+    const [payerRows] = await connection.query("SELECT balance FROM users WHERE id = ?", [req.user.userId]);
+    if (payerRows[0].balance < share.share_amount) {
+      await connection.rollback();
+      connection.release();
+      return res.json({ status: 0, reason: "Insufficient balance" });
+    }
+
+    // Transfer: payer -> creator (reuse pay logic style)
+    const newPayerBalance = Number(payerRows[0].balance) - share.share_amount;
+    await connection.query("UPDATE users SET balance = ? WHERE id = ?", [newPayerBalance, req.user.userId]);
+
+    const [creatorRows] = await connection.query("SELECT balance FROM users WHERE id = ?", [share.creator_id]);
+    const newCreatorBalance = Number(creatorRows[0].balance) + share.share_amount;
+    await connection.query("UPDATE users SET balance = ? WHERE id = ?", [newCreatorBalance, share.creator_id]);
+
+    // Mark settled
+    await connection.query(
+      "UPDATE split_shares SET settled = TRUE, settled_at = NOW() WHERE id = ?",
+      [shareId]
+    );
+
+    // Log txns
+    await connection.query(
+      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, 'sent', ?, ?, '₹')",
+      [req.user.userId, `Settled split share ${share.split_id}`, share.share_amount]
+    );
+    await connection.query(
+      "INSERT INTO transactions (user_id, type, details, amount, currency_symbol) VALUES (?, 'received', ?, ?, '₹')",
+      [share.creator_id, `Split ${share.split_id} settled by ${payerRows[0].account_name || 'user'}`, share.share_amount]
+    );
+
+    // Check if all settled
+    const [remaining] = await connection.query(
+      "SELECT COUNT(*) as pending FROM split_shares WHERE split_id = ? AND settled = FALSE",
+      [share.split_id]
+    );
+    if (remaining[0].pending === 0) {
+      await connection.query("UPDATE splits SET status = 'settled' WHERE id = ?", [share.split_id]);
+    }
+
+    await connection.commit();
+    connection.release();
+    return res.json({ status: 1, message: "Share settled successfully" });
+  } catch (error) {
+    if (connection) {
+      await connection.rollback();
+      connection.release();
+    }
+    console.error(error);
+    return res.status(500).json({ status: 0, reason: "Server error" });
+  }
+});
 
 // ── GET PORTFOLIO ─────────────────────────────────────────────────────────────
 app.get("/portfolio/", authenticate, async (req, res) => {
@@ -775,13 +1021,73 @@ app.post("/transaction/receive", authenticate, async (req, res) => {
   }
 });
 
+// Auto-create splits & split_shares tables if they don't exist yet
+const ensureSplitTables = async () => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS splits (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        creator_id INT NOT NULL,
+        total_amount DECIMAL(12,2) NOT NULL,
+        description VARCHAR(255),
+        status ENUM('open', 'settled') DEFAULT 'open',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS split_shares (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        split_id INT NOT NULL,
+        user_id INT NOT NULL,
+        share_amount DECIMAL(12,2) NOT NULL,
+        settled BOOLEAN DEFAULT FALSE,
+        settled_at TIMESTAMP NULL,
+        FOREIGN KEY (split_id) REFERENCES splits(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_share (split_id, user_id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+    console.log('Split tables ready.');
+  } finally {
+    connection.release();
+  }
+};
+
+// Also add portfolio table if not present
+const ensurePortfolioTable = async () => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS portfolio (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        asset_symbol VARCHAR(20) NOT NULL,
+        asset_name VARCHAR(100) NOT NULL,
+        asset_type ENUM('crypto','stock') NOT NULL DEFAULT 'crypto',
+        units DECIMAL(18,8) NOT NULL DEFAULT 0,
+        buy_price DECIMAL(18,2) NOT NULL DEFAULT 0,
+        current_value DECIMAL(18,2) NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `);
+    console.log('Portfolio table ready.');
+  } finally {
+    connection.release();
+  }
+};
+
 ensureResetColumns()
+  .then(() => ensureSplitTables())
+  .then(() => ensurePortfolioTable())
   .then(() => {
     app.listen(PORT, () => {
       console.log(`Backend listening on http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("Failed to prepare password reset columns:", error);
+    console.error("Startup error:", error);
     process.exit(1);
   });

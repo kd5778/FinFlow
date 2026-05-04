@@ -22,8 +22,6 @@ import "../stylesheets/MainTemplate.css";
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import Footer from "./Footer";
 
-// main dashboard / home screen component
-
 const MainTemplate = (props) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -41,18 +39,25 @@ const MainTemplate = (props) => {
     const fetchData = async () => {
       const token = localStorage.getItem("token");
 
+      // FIX 1: Check if the token exists before making the request.
+      // If it doesn't, redirect to login immediately.
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
       try {
         const { data } = await axios.get(
           `${import.meta.env.VITE_API_LINK}account/`,
           {
             headers: {
-              token: token,
+              token: token, 
+              // Note: Most standard APIs use 'Authorization: `Bearer ${token}`'
+              // Only use 'token: token' if your specific backend is configured to look for that exact header key.
             },
-            withCredentials: true, // Include credentials
+            withCredentials: true,
           }
         );
-
-        console.log(data);
 
         if (data.status === 0) {
           console.log("Error:", data.reason);
@@ -61,8 +66,6 @@ const MainTemplate = (props) => {
         }
 
         setIsLoading(false);
-
-        // console.log(data.result.account_name);
 
         const {
           account_name,
@@ -78,8 +81,6 @@ const MainTemplate = (props) => {
           dob,
           number,
         } = data.result;
-
-        console.log(account_name);
 
         const newAccount = {
           ...account,
@@ -98,29 +99,27 @@ const MainTemplate = (props) => {
           phoneNumber: number,
         };
 
-        // console.log(newAccount);
-
         dispatch(setAccount(newAccount));
 
-        console.log("main template works fine");
-        return;
       } catch (e) {
         console.log(e);
 
-        toastTrigger({
-          message: "something has gone wrong",
-          progressColor: "#c90909",
-        });
+        // FIX 2: Catch the 401 Unauthorized error explicitly.
+        // Clear the invalid token and kick the user back to the login screen.
+        if (e.response && e.response.status === 401) {
+          localStorage.removeItem("token");
+          navigate("/login");
+        } else {
+          toastTrigger({
+            message: "Something has gone wrong",
+            progressColor: "#c90909",
+          });
+        }
       }
     };
 
     fetchData();
-  }, [account.balance]);
-
-  const toast = {
-    message: "Hello from Main",
-    progressColor: "var(--primary-color)",
-  };
+  }, [account.balance, navigate, dispatch]); // Added missing dependencies to the array
 
   const onMenuClick = () => {
     dispatch(setScreenMode(0));
@@ -149,36 +148,6 @@ const MainTemplate = (props) => {
           </Link>
 
           <div className="mainControls">
-            {/* <div onClick={onClick} id="notifications">
-              <button className="mainControlsButton">
-                <CircleNotificationsRoundedIcon
-                  sx={{
-                    padding: "0rem",
-                    margin: "0rem",
-                    width: "3.5rem",
-                    height: "3.5rem",
-                  }}
-                  color="primary"
-                  fontSize="large"
-                />
-              </button>
-            </div> */}
-
-            {/* <div onClick={onClick} id="help">
-              <button className="mainControlsButton">
-                <HelpRoundedIcon
-                  sx={{
-                    padding: "0rem",
-                    margin: "0",
-                    width: "3.5rem",
-                    height: "3.5rem",
-                  }}
-                  color="primary"
-                  fontSize="large"
-                ></HelpRoundedIcon>
-              </button>
-            </div> */}
-
             <div onClick={onMenuClick} id="profile">
               <button className="mainControlsButton">
                 <AccountCircleRoundedIcon
@@ -197,7 +166,6 @@ const MainTemplate = (props) => {
           <Menu visibility={menuVisibility} onClick={onMenuClick} />
         </div>
 
-        {/* main component rendering  */}
         <div className="mainSubComponent">
           <div className="mainBoxWrapper">
             <div className="mainComponentBox">{component}</div>

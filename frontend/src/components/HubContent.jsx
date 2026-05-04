@@ -5,8 +5,6 @@ import { useSelector } from "react-redux";
 import { selectAccount } from "../store/mainSlice";
 import { refreshData } from "../controllers/data";
 import { toastTrigger } from "../helpers/helpers";
-import.meta.env.VITE_API_LINK
-
 
 import "../stylesheets/Home.css";
 import "../stylesheets/Transfer.css";
