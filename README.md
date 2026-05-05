@@ -278,6 +278,14 @@ erDiagram
 | **Nodemailer** | Email Service | Latest |
 | **CORS** | Cross-Origin Resource Sharing | Latest |
 
+
+Security
+Secure Cookies: Move JWTs from localStorage to httpOnly cookies to stop hackers from stealing tokens.
+
+Rate Limiting: Block users/bots after too many failed login attempts to prevent brute-force attacks.
+
+
+
 ### Database
 | Technology | Purpose | Version |
 |------------|---------|---------|
