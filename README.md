@@ -286,6 +286,8 @@ Rate Limiting: Block users/bots after too many failed login attempts to prevent 
 
 
 
+
+
 ### Database
 | Technology | Purpose | Version |
 |------------|---------|---------|
@@ -795,6 +797,6 @@ in the Software without restriction...
 
 - **Issues**: [GitHub Issues](https://github.com/kd5778/FinFlow/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/kd5778/FinFlow/discussions)
-- **Email**: iib2024008@iiita.ac.in / iib2024009@iiita.ac.in / iib2024010@iiita.ac.in
+- **Email**: iib2024008@iiita.ac.in / iib2024009@iiita.ac.in / iib2024010@iiita.ac.in  /iib2024027@iiita.ac.in /iib2024041@iiita.ac.in
 
 ---
